@@ -1,0 +1,140 @@
+{% raw %}
+<!DOCTYPE html>
+<html ng-app="app" ng-controller="viewWallet as walletViewer" lang="en">
+  <head>
+    <title>View Wallet</title><meta charset=utf-8 />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<link rel="stylesheet" media="screen" href="/static/dist/css/custom.css" />
+		<link rel="stylesheet" href="/static/dist/css/todo.css">
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+		<script src="/static/dist/js/components.js"></script>
+		<script src="/static/dist/js/app.js"></script>
+		<script src="/static/dist/js/todo.js"></script>
+		<script src="/static/dist/js/custom.js"></script>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
+
+		<link href="https://fonts.googleapis.com/css?family=Raleway:400,600" rel="stylesheet">
+	</head>
+	<body>
+		<header id="header"></header>
+		<script type="text/javascript">
+			$('#header').load('header');
+	  	</script>
+		<div id="wrap">
+			<div id="main" class="container formBG">
+
+				<div>
+					<div class="row">
+						<div class="col-sm-12 col-md-9 col-md-push-2 text-center">
+	            			<h1>Enter your Public Key<small> for the Stellar Network Account</small></h1>
+					        <form class="top-padding20" ng-submit="showWallet(user)">
+								<div class="form-group">
+					             	<label for="publickey"></label>
+					                <input class="input-lg" type="text" placeholder="ex: GCQUV7WA4SP3LNTRDOBSURENX6WA5JU7Q5B54Y5I2G4IRTGG2IZ6M72M" ng-model="user.publickey" size=80 required>
+					            </div>
+					            <div class="form-group text-right text-italic gray">Hint: Stellar Network public keys begin with 'G'</div>
+					            <div ng-show="error.length" class="errorMessage form-group">
+					            	This is an invalid public key. Please retry.
+					            </div>
+					            <button type="submit" id="btn-view-wallet" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-eye-open"></span> View Your Wallet</button>
+					        </form>
+	        			</div>
+	        		</div>
+	        	    <div class="row top-padding35">
+						<div ng-show="balances.length>0" id="wallet" class="col-sm-12 col-md-9 col-md-push-2 wallet">
+							<table class="table table-striped table-bordered">
+								<thead>
+									<tr>
+										<td>
+											Token
+										</td>
+										<td>
+											Available Balance
+										</td>
+										<td>
+											Amount in Vault
+										</td>
+								    </tr>
+									<tr ng-repeat="assets in balances">
+										<td>
+											{{assets.asset_code}}
+										</td>
+										<td>
+											{{assets.balance}}
+										</td>
+										<td>
+											<!-- Button trigger modal -->
+											<button ng-click="passAsset(assets)" type="button" class="btn btn-danger">
+											  <span class="glyphicon glyphicon-lock"></span> <span class="text-uppercase">Build Vault</span>
+											</button>
+										</td>
+									</tr>
+								</thead>
+							</table>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<footer class="footer"></footer>
+		<script type="text/javascript">
+			$('.footer').load('footer');
+		</script>
+
+<!-- Add Vault Modal -->
+<div class="modal fade" id="buildVault" tabindex="-1" role="dialog" aria-labelledby="buildVaultLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="buildVault"></h5>
+      </div>
+      <form ng-submit="addVault(vault)">
+	      <div class="modal-body">
+	      	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	        <h3>Build Vault for asset {{walletContents.asset_code}}</h3>
+				<div class="form-group">
+					<label for="tokenName">Token Name:</label>
+					<input type="text" name="tokenName" ng-model="vault.tokenName" required>
+				</div>
+				<div class="form-group">
+					<label for="tokenSymbol">Token Symbol:</label>
+					<input type="text" name="tokenSymbol" ng-model="vault.tokenSymbol" required> 1-12 alphanumeric characters allowed
+				</div>
+				<div class="form-group">
+					<label for="storeAmount">Store Amount in Vault:</label>
+					<input type="number" name="storeAmount" ng-model="vault.storeAmount" max={{walletContents.balance}} required> of {{walletContents.balance}} {{walletContents.asset_code}}
+				</div>
+				<div class="form-group">
+					<label for="denomination">Denomination:</label>
+					<input type="number" name="denomination" ng-model="vault.denomination" required> exchange rate back to {{walletContents.asset_code}}
+				</div>
+				<div class="form-group">
+					New Token Amount is {{(vault.storeAmount/vault.denomination) | number:7}} {{tokenSymbol}}
+				</div>
+				<div class="form-group">
+					<label for="seed">Seed</label>
+					<input name="seed" type="text" ng-model="vault.seed" size=80 required>
+				</div>
+				New {{walletContents.asset_code}} balance will be: {{walletContents.balance-vault.storeAmount | number:7}}
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+	        <button type="submit" class="btn btn-primary">Build Vault</button>
+	      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+	</body>
+</html>
+{% endraw %}
