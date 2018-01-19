@@ -1,6 +1,6 @@
 #! /home/gitzman/anaconda2/bin/python
 
-# locoin/__init__.py
+# stellarVault/__init__.py
 
 from flask import abort, Flask, session, redirect, url_for, escape, request,jsonify, render_template, flash, send_file
 import os
@@ -13,7 +13,7 @@ import requests
 
 app = Flask(__name__)
 #app.config.from_object('config')
-app.config.from_pyfile('C:/Users/arout/Documents/locoin/locoin/config.py')
+app.config.from_pyfile('C:/Users/arout/Documents/stellarVault/stellarVault/config.py')
 s3 = boto3.client('s3')
 
 from .models import *

@@ -1,5 +1,5 @@
 from __future__ import print_function # Python 2/3 compatibility
-from locoin import *
+from stellarVault import *
 from stellar_base.horizon import horizon_testnet, horizon_livenet, query
 import boto3
 import json

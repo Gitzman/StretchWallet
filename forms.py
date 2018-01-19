@@ -1,4 +1,4 @@
-from locoin import *
+from stellarVault import *
 import botocore
 
 
