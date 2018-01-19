@@ -1,12 +1,15 @@
+from __future__ import print_function # In python 2.7
 from stellarVault import *
 import botocore
+
+import sys
 
 
 
 
 @app.route("/submit", methods=['POST'])
 def submit():
-   print request.data
+   print(request.data, file=sys.stderr) 
    return render_template('viewwallet.html')
 
 

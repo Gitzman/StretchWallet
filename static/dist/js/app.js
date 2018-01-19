@@ -45,7 +45,7 @@ $scope.addVault = function(vault) {
 
   $http.post('/submit', $scope.vaultObj).then(
       function successCallback(r) {
-        console.log(r.data);
+        console.log($scope.vaultObj)
         $scope.error = "";
         
       } //end success
