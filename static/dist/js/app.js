@@ -34,26 +34,90 @@ $scope.passAsset = function(assets) {
       $scope.myModalInstance = angular.element('#buildVault').modal();
     } //end passAsset
 
-$scope.addVault = function(vault) {
+  $scope.validateVault = function(vault) {
+    $scope.vaultObj = {"tokenName": vault.tokenName,
+     "tokenSymbol": vault.tokenSymbol,
+     "storeAmount": vault.storeAmount,
+     "denomination": vault.denomination,
+     "seed": vault.seed};
 
-  $scope.vaultObj = {"tokenName": vault.tokenName,
-   "tokenSymbol": vault.tokenSymbol,
-   "storeAmount": vault.storeAmount,
-   "denomination": vault.denomination,
-   "seed": vault.seed};
-   //console.log($scope.vaultObj);
+        var vault = element(by.exactBinding('vault'));
 
-  $http.post('/submit', $scope.vaultObj).then(
-      function successCallback(r) {
-        console.log($scope.vaultObj)
-        $scope.error = "";
-        
-      } //end success
-      , function errorCallback(r) {
-        $scope.error = r.data.detail;
-        console.log($scope.error);  
-        } //end error
-    ); //end http
-  }; //end add function
-  
+        var tokenSymbolValid = element(by.binding('vaultForm.tokenSymbol.$valid'));
+        var tokenSymbolError = element(by.binding('vaultForm.tokenSymbol.$error'));
+        var seedValid = element(by.binding('vaultForm.seed.$valid'));
+        var seedError = element(by.binding('vaultForm.seed.$error'));
+        var storeAmountValid = element(by.binding('vaultForm.storeAmount.$valid'));
+        var storeAmountError = element(by.binding('vaultForm.storeAmount.$error'));
+
+        var formValid = element(by.binding('vaultForm.$valid'));
+
+        var tokenSymbolLastInput = element(by.model('vault.tokenSymbol'));
+        var seedLastInput = element(by.model('vault.seed'));
+        var storeAmountLastInput = element(by.model('vault.storeAmount'));
+
+        it('should be invalid if less than required min length', function() {
+          /*tokenSymbolLastInput.clear();
+          tokenSymbolLastInput.sendKeys('xx');
+          seedLastInput.clear();
+          seedLastInput.sendKeys('xx');*/
+
+          expect(tokenSymbolValid.getText()).toContain('false');
+          expect(tokenSymbolError.getText()).toContain('minlength');
+          expect(seedValid.getText()).toContain('false');
+          expect(seedError.getText()).toContain('minlength');
+
+          expect(formValid.getText()).toContain('false');
+        });
+
+        it('should be invalid if longer than max length', function() {
+          /*tokenSymbolLastInput.clear();
+          tokenSymbolLastInput.sendKeys('some ridiculously long name');
+          seedLastInput.clear();
+          seedLastInput.sendKeys('some ridiculously long name');*/
+
+          expect(tokenSymbolValid.getText()).toContain('false');
+          expect(tokenSymbolError.getText()).toContain('maxlength');
+          expect(seedValid.getText()).toContain('false');
+          expect(seedError.getText()).toContain('maxlength');
+
+          expect(formValid.getText()).toContain('false');
+        });
+
+        it('should be invalid if exceeds max', function() {
+          /*tokenSymbolLastInput.clear();
+          tokenSymbolLastInput.sendKeys('some ridiculously long name');
+          seedLastInput.clear();
+          seedLastInput.sendKeys('some ridiculously long name');*/
+
+          expect(storeAmountValid.getNumber()).toContain('false');
+          expect(storeAmountError.getNumber()).toContain('max');
+
+          expect(formValid.getText()).toContain('false');
+        });
+  }
+
+  $scope.addVault = function(vault) {
+
+    $scope.vaultObj = {"tokenName": vault.tokenName,
+     "tokenSymbol": vault.tokenSymbol,
+     "storeAmount": vault.storeAmount,
+     "denomination": vault.denomination,
+     "seed": vault.seed};
+     //console.log($scope.vaultObj);
+
+    $http.post('/submit', $scope.vaultObj).then(
+        function successCallback(r) {
+          console.log($scope.vaultObj)
+          $scope.error = "";
+          
+        } //end success
+        , function errorCallback(r) {
+          $scope.error = r.data.detail;
+          console.log($scope.error);  
+          } //end error
+      ); //end http
+    }; //end add function
+
+
 }); //end viewWallet Controller
