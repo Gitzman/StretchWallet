@@ -121,14 +121,19 @@
 					<label for="storeAmount">Store</label>
 					<input class="input-lg" type="number" name="storeAmount" ng-model="vault.storeAmount" ng-max={{walletContents.balance}} required> {{walletContents.asset_code}} of {{walletContents.balance}} in vault
 					<div role="alert">
-				      <span class="errorMessage" ng-show="vaultForm.storeAmount.$error.maximum">
+				      <span class="errorMessage" ng-show="vaultForm.storeAmount.$error.max">
 				        Not enough {{walletContents.asset_code}}!
 				      </span>
 				    </div>
 				</div>
 				<div class="form-group">
 					<label for="denomination">Exchange</label>
-					<input class="input-lg" type="number" name="denomination" ng-model="vault.denomination" required> {{vault.tokenSymbol}} for 1 {{walletContents.asset_code}}
+					<input class="input-lg" type="number" id="denomination" name="denomination" ng-model="vault.denomination" ng-pattern="/[0-9]+/" required> {{walletContents.asset_code}} for 1 {{vault.tokenSymbol}}
+					<div role="alert">
+				      <span class="errorMessage" ng-show="vaultForm.denomination.$error.pattern">
+				        Whole numbers only!
+				      </span>
+				    </div>
 				</div>
 				<div class="form-group">
 					<h1>
@@ -142,15 +147,15 @@
 						New {{walletContents.asset_code}} balance will be: {{walletContents.balance-vault.storeAmount | number:7}}
 					</div>
 				</div>
-				<div class="form-group">
-					<label class="long-form" for="seed">Enter seed (or private key) to sign the transaction</label>
-					<input class="input-lg" name="seed" type="text" ng-model="vault.seed" ng-minlength="1" ng-maxlength="64" size=64 required>
+				<div class="form-group gray-border" ng-show="vaultForm.tokenName.$valid && vaultForm.tokenSymbol.$valid && vaultForm.storeAmount.$valid&&vaultForm.denomination.$valid">
+					<label class="long-form" for="seed">Enter private key to sign the transaction</label>
+					<input class="input-lg" name="seed" type="text" ng-model="vault.seed" ng-minlength="56" ng-maxlength="56" size=72 required>
 					<div role="alert">
 				      <span class="errorMessage" ng-show="vaultForm.seed.$error.minlength">
 				        Too short! Keep going..
 				      </span>
 				      <span class="errorMessage" ng-show="vaultForm.seed.$error.maxlength">
-				        Too long! Seeds are 64 digit alphanumeric codes begin with "S".
+				        Too long! Private Keys are 56-digit alphanumeric codes begin with "S".
 				      </span>
 				    </div>
 				</div>

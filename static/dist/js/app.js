@@ -6,7 +6,8 @@ app.controller('viewWallet', function($scope,$http) {
   $scope.showWallet = function(user) {
   $scope.balances = [];
   //console.log(user.publickey)
-  var url = 'https://horizon.stellar.org/accounts/' + user.publickey;
+  //var url = 'https://horizon.stellar.org/accounts/' + user.publickey;
+  var url = 'https://horizon-testnet.stellar.org/accounts/' + user.publickey; //test site
   //console.log(url);
   $http.get(url).then(
      function successCallback(r) {
@@ -49,6 +50,8 @@ $scope.passAsset = function(assets) {
         var seedError = element(by.binding('vaultForm.seed.$error'));
         var storeAmountValid = element(by.binding('vaultForm.storeAmount.$valid'));
         var storeAmountError = element(by.binding('vaultForm.storeAmount.$error'));
+        var denominationValid = element(by.binding('vaultForm.denomination.$valid'));
+        var denominationError = element(by.binding('vaultForm.denomination.$error'));
 
         var formValid = element(by.binding('vaultForm.$valid'));
 
@@ -90,10 +93,25 @@ $scope.passAsset = function(assets) {
           seedLastInput.clear();
           seedLastInput.sendKeys('some ridiculously long name');*/
 
-          expect(storeAmountValid.getNumber()).toContain('false');
-          expect(storeAmountError.getNumber()).toContain('max');
+          expect(storeAmountValid.getText()).toContain('false');
+          expect(storeAmountError.getText()).toContain('max');
 
           expect(formValid.getText()).toContain('false');
+        });
+
+        var denomination = element(by.binding('denomination'));
+        var input = element(by.id('denomination'));
+
+        it('should validate the input with the default pattern', function() {
+          input.sendKeys('aaa');
+          expect(denomination.getText()).not.toContain('aaa');
+
+          input.clear().then(function() {
+            input.sendKeys('123');
+            expect(denomination.getText()).toContain('123');
+          });
+          expect(denominationValid.getText()).toContain('false');
+          expect(denominationError.getText()).toContain('pattern');
         });
   }
 
@@ -106,7 +124,7 @@ $scope.passAsset = function(assets) {
      "seed": vault.seed};
      //console.log($scope.vaultObj);
 
-    $http.post('/submit', $scope.vaultObj).then(
+    $http.post('/vaultDeposit', $scope.vaultObj).then(
         function successCallback(r) {
           console.log($scope.vaultObj)
           $scope.error = "";

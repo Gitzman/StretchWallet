@@ -150,6 +150,7 @@ button.navbar-toggle {
     font-size: 18px;
 }
 
+
 label.long-form {
     width: 600px;
 }
@@ -265,6 +266,10 @@ li .feed {
 
 .gray-background {
   background-color: #e6e6e6;
+}
+
+.gray-border {
+  border: 2px solid #777 !important;
 }
 
 .text-bold {
