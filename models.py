@@ -5,6 +5,21 @@ import boto3
 import json
 import decimal
 from boto3.dynamodb.conditions import Key
+from stellar_base.keypair import Keypair
+from stellar_base.asset import Asset
+from stellar_base.operation import Payment
+from stellar_base.operation import CreateAccount
+from stellar_base.transaction import Transaction
+from stellar_base.transaction_envelope import TransactionEnvelope as Te
+from stellar_base.memo import TextMemo
+from stellar_base.horizon import horizon_testnet, horizon_livenet
+import requests
+from stellar_base.operation import AllowTrust
+from stellar_base.operation import ChangeTrust
+from stellar_base.operation import SetOptions
+from stellar_base.operation import ManageOffer
+from stellar_base.operation import CreatePassiveOffer
+from stellar_base.operation import ManageData
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
@@ -23,172 +38,164 @@ def getBalance(publicKey):
     response = query('https://horizon.stellar.org/accounts/{0}'.format(publicKey))
     return response['balances']
 
-def add_files(job_id, filename):
-    table = dynamodb.Table('Jobs')
 
-    response = table.update_item(
-        Key={
-            'job_id': job_id ,
-        },
-        UpdateExpression="set info.files = list_append(info.files, :f)",
-        ExpressionAttributeValues={
-            ':f': [filename]
-        },
-        ReturnValues="ALL_NEW"
-    )
-
-    print("UpdateItem succeeded:")
-    print(json.dumps(response, indent=4, cls=DecimalEncoder))
-    return response
-
-def add_job(uuid, job_id, job_title, job_url):
-    table = dynamodb.Table("Users")
-    response = table.update_item(
-        Key={
-            'uuid': uuid ,
-        },
-        UpdateExpression="set info.active_jobs = list_append(info.active_jobs, :j)",
-        ExpressionAttributeValues={
-            ':j': [{'job_id':job_id, 'job_title':job_title, 'job_url': job_url}]
-        },
-        ReturnValues="ALL_NEW"
-    )
-
-    print("UpdateItem succeeded:")
-    print(json.dumps(response, indent=4, cls=DecimalEncoder))
-    return response
-
-def add_completed_job(uuid, job_id, job_title, job_url):
-    table = dynamodb.Table("Users")
-    response = table.update_item(
-        Key={
-            'uuid': uuid ,
-        },
-        UpdateExpression="set info.completed_jobs = list_append(info.completed_jobs, :j)",
-        ExpressionAttributeValues={
-            ':j': [{'job_id':job_id, 'job_title':job_title, 'job_url': job_url}]
-        },
-        ReturnValues="ALL_NEW"
-    )
-
-    print("UpdateItem succeeded:")
-    print(json.dumps(response, indent=4, cls=DecimalEncoder))
-    return response
-
-def add_message(job_id, message):
-    table = dynamodb.Table("Jobs")
-    print (message.decode('utf-8'))
-    print (job_id)
-    response = table.update_item(
-        Key={
-            'job_id': job_id ,
-        },
-        UpdateExpression="set info.feed = list_append(info.feed, :f)",
-        ExpressionAttributeValues={
-            ':f': [message.decode('utf-8')]
-        },
-        ReturnValues="ALL_NEW"
-    )
-
-    print("UpdateItem succeeded:")
-#    print(json.dumps(response, indent=4, cls=DecimalEncoder))
-    return response
-
-def read_records (uuid):
-    table = dynamodb.Table("Users")
-
-    response = table.query(
-        KeyConditionExpression=Key('uuid').eq(uuid)
-    )
-    return response
-
-
-def read_auth (email, password):
-
-    table = dynamodb.Table("Authentication")
-    try:
-        response = table.query(
-            KeyConditionExpression=Key('email').eq(email)
-        )
-        return response
-    except:
-        return "Nothing"
-
-def read_job (job_id):
-    print (job_id)
-    table = dynamodb.Table("Jobs")
-
-    try:
-
-        response = table.query(
-            KeyConditionExpression=Key('job_id').eq(job_id)
-        )
-
-    except:
-        return 'couldnt find job'
-
-    print (response)
-    return response
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def create_new_records (item):
-    role_table ={'stenographer' : 'Stenographers',
-                'Stenographer' : 'Stenographers',
-                'Scopist' : 'Scopists',
-                'scopist' : 'Scopists'}
-
-    table = dynamodb.Table('Users')
-
-    response = table.put_item(
-       Item=item
-    )
-
-    print("PutItem succeeded:")
-    print(json.dumps(response, indent=4, cls=DecimalEncoder))
-    print (response['ResponseMetadata']['HTTPStatusCode'])
-
+def buildVault(data):
+    seed = data['seed']
+    tokenName = data['tokenName']
+    tokenSymbol = data['tokenSymbol']
+    denomination = data['denomination']
+    amount = data['storeAmount']
+    response, vault = deal(seed, tokenName, tokenSymbol, denomination, amount, 'createVault')
+    response2, vault = deal(seed, tokenName, tokenSymbol, denomination, amount, 'issueVault', vault)
     return None
 
-def create_new_user (auth):
-    table = dynamodb.Table('Authentication')
 
-    response = table.put_item(
-       Item=auth
+def deal(seed, tokenName, tokenSymbol, denomination, amount, operationCode, vault =1):
+    kp = vault
+    passiveOffer = denomination - .00001
+
+    minamount='2'
+    #Load signer credentials
+    ogkp = Keypair.from_seed(seed)
+    publickey = ogkp.address().decode()
+    seed = ogkp.seed().decode()
+
+    #Create Vault Account Credentials
+    if kp == 1:
+        kp = Keypair.random()
+    newpublickey = kp.address().decode()
+    newseed = kp.seed().decode()
+
+    #Connect to Horizon
+    horizon = horizon_testnet()
+
+    #declareAssets
+    storedAsset = Asset("XLM")
+    safeAsset = Asset(tokenSymbol, newpublickey)
+
+    # Create Vault Account Operation Step 1
+    issueAccount = CreateAccount({
+        'destination': newpublickey,
+        'starting_balance': str (amount)
+    })
+
+
+    #Trust Issuer of safeAsset Step 2
+    trustIssuer = ChangeTrust({
+        'asset': safeAsset,
+        'limit': str(amount/denomination)
+    })
+
+    #Set Options to Revocable Authority and Required Authority Step 3
+    setAuthority = SetOptions({
+
+        'set_flags': 1,
+    })
+
+
+    #Accept trust of user Step 4
+    trustUser = AllowTrust({
+        'trustor': publickey,
+        'asset_code': tokenSymbol,
+        'authorize' : 'True'
+    })
+
+    #Pay new asset to user Step 5
+    payUser = Payment({
+        # 'source' : Alice.address().decode(),
+        'destination': publickey,
+        'amount': str(amount/denomination),
+        'asset':safeAsset
+    })
+
+    #Create Offer to redeem token
+    buyOffer = CreatePassiveOffer({
+        'selling': safeAsset,
+        'buying': storedAsset,
+        'amount': str(amount),
+        'price':str(denomination)
+    })
+
+    #Create offer to sell token
+    sellOffer = CreatePassiveOffer({
+        'selling': storedAsset,
+        'buying': safeAsset,
+        'amount': str(amount),
+        'price':str(1.0 / denomination)
+    })
+
+
+    #Redeem token for Asset
+    depositOffer = ManageOffer({
+        'selling': storedAsset,
+        'buying': safeAsset,
+        'amount': str(amount),
+        'price':str(1/(denomination+.0000001))
+    })
+
+    #Redeem token for Asset
+    redeemOffer = ManageOffer({
+        'selling': safeAsset,
+        'buying': storedAsset,
+        'amount': str(amount/denomination),
+        'price':str((denomination-.0000001))
+    })
+
+
+    #Kill Account Step 8
+    killAccount = SetOptions({
+    'low_threshold' : '1',
+    'medium_threshold' :'3',
+    'high_threshold' : '3'
+})
+    testFund = Payment({
+        # 'source' : Alice.address().decode(),
+        'destination': newpublickey,
+        'amount': '10000',
+        'asset':safeAsset
+    })
+
+
+    declareVault = ManageData({
+        'data_name': newpublickey,
+
+        'data_value': tokenName
+
+    })
+
+
+
+    operationCodes = {'createVault' : {'operations':[issueAccount, trustIssuer, declareVault],
+                                       'signer': ogkp},
+                     'issueVault' :  {'operations' :[setAuthority, trustUser, payUser, buyOffer,
+                                                     sellOffer],
+                                      'signer':kp},
+                     'redeemOffer': {'operations':[redeemOffer],
+                                     'signer': ogkp},
+                     'depositOffer': {'operations':[depositOffer],
+                                     'signer':ogkp}}
+
+    sourceAccount = operationCodes[operationCode]['signer']
+    # create a memo
+    msg = TextMemo('test')
+    # get sequence of new account address
+    sequence = horizon.account(sourceAccount.address()).get('sequence')
+    # construct the transaction
+    tx = Transaction(
+        source=sourceAccount.address().decode(),
+        opts={
+            'sequence': sequence,
+            'memo': msg,
+            'operations': operationCodes[operationCode]['operations'],
+            'fee': 500
+         },
     )
+    # build envelope
+    envelope = Te(tx=tx, opts={"network_id": "TESTNET"})
+    # sign
+    envelope.sign(sourceAccount)
 
-    print("PutItem succeeded:")
-    print(json.dumps(response, indent=4, cls=DecimalEncoder))
-    print (response['ResponseMetadata']['HTTPStatusCode'])
-
-    return None
-
-def create_new_job (job):
-    table = dynamodb.Table('Jobs')
-
-    response = table.put_item(
-       Item=job
-    )
-
-    print("PutItem succeeded:")
-    print(json.dumps(response, indent=4, cls=DecimalEncoder))
-    print (response['ResponseMetadata']['HTTPStatusCode'])
-
-    return None
-
-def remove_active_job(uuid, job_position):
-    print ("remove info.active_jobs[{0}]".format(job_position))
-    table = dynamodb.Table("Users")
-    response = table.update_item(
-        Key={
-            'uuid': uuid ,
-        },
-        UpdateExpression="remove info.active_jobs[{0}]".format(str(job_position)),
-        ReturnValues="ALL_NEW"
-    )
-
-    print("UpdateItem succeeded:")
-    print(json.dumps(response, indent=4, cls=DecimalEncoder))
-    return response
+    # submit
+    xdr = envelope.xdr()
+    response = horizon.submit(xdr)
+    return response, kp
