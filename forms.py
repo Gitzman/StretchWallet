@@ -8,8 +8,8 @@ import sys
 
 
 
-@app.route("/submit", methods=['POST'])
-def submit():
+@app.route("/vaultDeposit", methods=['POST'])
+def vaultDeposit():
    print((json.loads(request.data)), file=sys.stderr)
    buildVault(json.loads(request.data))
    return render_template('viewwallet.html')
