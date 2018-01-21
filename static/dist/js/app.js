@@ -1,6 +1,6 @@
 var app = angular.module('app', ['components'])
 //public key retrieves wallet contents
-app.controller('viewWallet', function($scope,$http,$interval) {
+app.controller('viewWallet', function($scope,$http,$interval,$timeout) {
   walletViewer = this;
 
   $scope.showWallet = function(user) {
@@ -16,7 +16,7 @@ app.controller('viewWallet', function($scope,$http,$interval) {
       //console.log(atob(atobTest));
       //var dataArray: Array = r.data.data;
       //console.log(dataArray);
-      console.log(r.data);
+      //console.log(r.data);
       $scope.error = "";
       for (i=0; i<r.data.balances.length;i++) {
           //console.log(r.data);
@@ -26,7 +26,8 @@ app.controller('viewWallet', function($scope,$http,$interval) {
              //console.log('IS A VAULT')
              var issuer = r.data.balances[i].asset_issuer;
              var assetName = atob(r.data.data[issuer]);
-             $scope.vaults.push({"asset_code": r.data.balances[i].asset_code, "balance": r.data.balances[i].balance, "asset_issuer": r.data.balances[i].asset_issuer, "asset_name": assetName});
+             //$scope.vaults.push({"asset_code": r.data.balances[i].asset_code, "balance": r.data.balances[i].balance, "asset_issuer": r.data.balances[i].asset_issuer, "asset_name": assetName}});
+             //console.log($scope.balances.asset_code.vaults[0]);
            }
            else {
             $scope.balances.push({"asset_code": r.data.balances[i].asset_code, "balance": r.data.balances[i].balance, "asset_issuer": r.data.balances[i].asset_issuer});
@@ -37,19 +38,28 @@ app.controller('viewWallet', function($scope,$http,$interval) {
           }
         }
 
-       for (j=0; j<$scope.vaults.length;j++) {
+       for (j=0; j<$scope.balances.asset_code.vaults.length;j++) {
         //var urlOffers = "https://horizon.stellar.org/accounts/"+ $scope.vaults[j].asset_issuer +"/offers"; 
         var urlOffers = "https://horizon-testnet.stellar.org/accounts/"+ $scope.vaults[j].asset_issuer +"/offers"; //test
-        console.log(urlOffers);
+        //console.log(urlOffers);
+
         $http.get(urlOffers).then(
           function successCallback(r) {
             console.log(r);
+
+            for (k=0; k<$scope.balances.length;i++) {
+              if ($scope.balances.asset_code  == "XLM") {
+
+              }
+            }
+
+
           }, function errorCallback(r) {
           $scope.error = r.data.detail;
           console.log($scope.error);  
        }
        );
-      }
+      } 
     } //end success
     , function errorCallback(r) {
       $scope.error = r.data.detail;
@@ -168,7 +178,25 @@ $scope.passAsset = function(assets, user) {
           console.log($scope.error);  
           } //end error
       ); //end http
-    $interval($scope.showWallet, 10000, 1, true, user); //wait 10 seconds to refresh page
-    }; //end add function
+
+    
+     function AlbumCtrl() {
+        $scope.counter = 10;
+        //console.log($scope.counter)
+        $scope.onTimeout = function(){
+            $scope.counter--;
+            if ($scope.counter > 0) {
+                mytimeout = $timeout($scope.onTimeout,1000);
+            }// closes if statement
+        }// coses onTimeout()
+        var mytimeout = $timeout($scope.onTimeout,1000);
+              
+      }// closes AlbumCtrl 
+
+
+    $interval($scope.showWallet, 10000, 1, true, user); //wait 10 seconds to refresh page 
+    $interval(AlbumCtrl, 0, 1, true); 
+
+  } //end add function
  
 }); //end viewWallet Controller
