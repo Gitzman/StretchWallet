@@ -11,15 +11,17 @@ app.controller('viewWallet', function($scope,$http) {
   //console.log(url);
   $http.get(url).then(
      function successCallback(r) {
-      //console.log(r.data)
+      //var atobTest = r.data.data.GBV5LKMKWLBOO56E46VRIP65OMWSU3H2FGWOUFBXANXVMZJMPNZYEX7Y;
+      //console.log(atob(atobTest));
+      //console.log(r.data);
       $scope.error = "";
       for (i=0; i<r.data.balances.length;i++) {
           //console.log(r.data);
           if (r.data.balances[i].asset_code !== undefined) {
-            $scope.balances.push({"asset_code" : r.data.balances[i].asset_code, "balance" : r.data.balances[i].balance});
+            $scope.balances.push({"asset_code" : r.data.balances[i].asset_code, "balance" : r.data.balances[i].balance, "asset_issuer" : r.data.balances[i].asset_issuer});
           }
           if (r.data.balances[i].asset_code == undefined) {
-            $scope.balances.push({"asset_code" : "XLM", "balance" : r.data.balances[i].balance});
+            $scope.balances.push({"asset_code" : "XLM", "balance" : r.data.balances[i].balance, "asset_issuer" : r.data.balances[i].asset_issuer});
           }
         }
     } //end success
@@ -115,18 +117,20 @@ $scope.passAsset = function(assets) {
         });
   }
 
-  $scope.addVault = function(vault) {
+  $scope.addVault = function(vault, walletContents) {
 
-    $scope.vaultObj = {"tokenName": vault.tokenName,
+    $scope.vaultObj = { "asset_codeOrigin" : walletContents.asset_code,
+     "asset_issuerOrigin": walletContents.asset_issuer,
+     "tokenName": vault.tokenName,
      "tokenSymbol": vault.tokenSymbol,
      "storeAmount": vault.storeAmount,
      "denomination": vault.denomination,
      "seed": vault.seed};
-     //console.log($scope.vaultObj);
+     console.log($scope.vaultObj);
 
     $http.post('/vaultDeposit', $scope.vaultObj).then(
         function successCallback(r) {
-          console.log($scope.vaultObj)
+          //console.log($scope.vaultObj)
           $scope.error = "";
           
         } //end success
@@ -136,6 +140,11 @@ $scope.passAsset = function(assets) {
           } //end error
       ); //end http
     }; //end add function
+
+  $scope.closeModal = function ($scope) {
+       
+      $scope.myModalInstance = angular.element('#buildVault').close();
+  }
 
 
 }); //end viewWallet Controller

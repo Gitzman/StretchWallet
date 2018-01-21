@@ -90,12 +90,12 @@
 
 <!-- Add Vault Modal -->
 <div class="modal fade" id="buildVault" tabindex="-1" role="dialog" aria-labelledby="buildVaultLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="buildVault"></h5>
       </div>
-      <form name="vaultForm" ng-submit="addVault(vault)">
+      <form name="vaultForm" ng-submit="addVault(vault, walletContents);closeModal();">
 	      <div class="modal-body">
 	      	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 	          <span aria-hidden="true">&times;</span>
