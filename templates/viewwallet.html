@@ -26,14 +26,14 @@
 		<script type="text/javascript">
 			$('#header').load('header');
 	  	</script>
-		<div id="wrap">
-			<div id="main" class="container formBG">
-
-				<div>
+		<div id="wrapper">
+			<div id="main">
+				<div class="formBG container">
 					<div class="row">
 						<div class="col-sm-12 col-md-9 col-md-push-2 text-center">
+	            			<form ng-submit="showWallet(user)">
 	            			<h1>Enter your Public Key<small> for the Stellar Network Account</small></h1>
-					        <form class="top-padding20" ng-submit="showWallet(user)">
+					        
 								<div class="form-group">
 					             	<label for="publickey"></label>
 					                <input class="input-lg" type="text" placeholder="ex: GCQUV7WA4SP3LNTRDOBSURENX6WA5JU7Q5B54Y5I2G4IRTGG2IZ6M72M" ng-model="user.publickey" size=80 required>
@@ -70,7 +70,7 @@
 										</td>
 										<td>
 											<!-- Button trigger modal -->
-											<button ng-click="passAsset(assets)" type="button" class="btn btn-danger">
+											<button ng-click="passAsset(assets,user)" type="button" class="btn btn-danger">
 											  <span class="glyphicon glyphicon-lock"></span> <span class="text-uppercase">Build Vault</span>
 											</button>
 										</td>
@@ -80,13 +80,12 @@
 						</div>
 					</div>
 				</div>
-
-			</div>
-		</div>
-		<footer class="footer"></footer>
+		<footer id="footer"></footer>
 		<script type="text/javascript">
-			$('.footer').load('footer');
+			$('#footer').load('footer');
 		</script>
+		</div>
+	</div>
 
 <!-- Add Vault Modal -->
 <div class="modal fade" id="buildVault" tabindex="-1" role="dialog" aria-labelledby="buildVaultLabel" aria-hidden="true">
@@ -95,7 +94,7 @@
       <div class="modal-header">
         <h5 class="modal-title" id="buildVault"></h5>
       </div>
-      <form name="vaultForm" ng-submit="addVault(vault, walletContents);timeOut(3000);showWallet(user);">
+      <form name="vaultForm" ng-submit="addVault(vault, walletContents, user)">
 	      <div class="modal-body">
 	      	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 	          <span aria-hidden="true">&times;</span>

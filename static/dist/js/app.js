@@ -1,11 +1,12 @@
 var app = angular.module('app', ['components'])
 //public key retrieves wallet contents
-app.controller('viewWallet', function($scope,$http) {
+app.controller('viewWallet', function($scope,$http,$interval) {
   walletViewer = this;
 
   $scope.showWallet = function(user) {
   $scope.balances = [];
-  //console.log(user.publickey)
+  $scope.vaults = [];
+
   //var url = 'https://horizon.stellar.org/accounts/' + user.publickey;
   var url = 'https://horizon-testnet.stellar.org/accounts/' + user.publickey; //test site
   //console.log(url);
@@ -13,19 +14,42 @@ app.controller('viewWallet', function($scope,$http) {
      function successCallback(r) {
       //var atobTest = r.data.data.GBV5LKMKWLBOO56E46VRIP65OMWSU3H2FGWOUFBXANXVMZJMPNZYEX7Y;
       //console.log(atob(atobTest));
-      //var dataArray : Array = r.data.data;
+      //var dataArray: Array = r.data.data;
       //console.log(dataArray);
-      //console.log(r.data);
+      console.log(r.data);
       $scope.error = "";
       for (i=0; i<r.data.balances.length;i++) {
           //console.log(r.data);
           if (r.data.balances[i].asset_code !== undefined) {
-            $scope.balances.push({"asset_code" : r.data.balances[i].asset_code, "balance" : r.data.balances[i].balance, "asset_issuer" : r.data.balances[i].asset_issuer});
+            if (r.data.data.hasOwnProperty(r.data.balances[i].asset_issuer)){
+             //console.log(r.data.balances[i].asset_issuer)
+             //console.log('IS A VAULT')
+             var issuer = r.data.balances[i].asset_issuer;
+             var assetName = atob(r.data.data[issuer]);
+             $scope.vaults.push({"asset_code": r.data.balances[i].asset_code, "balance": r.data.balances[i].balance, "asset_issuer": r.data.balances[i].asset_issuer, "asset_name": assetName});
+           }
+           else {
+            $scope.balances.push({"asset_code": r.data.balances[i].asset_code, "balance": r.data.balances[i].balance, "asset_issuer": r.data.balances[i].asset_issuer});
+          }
           }
           if (r.data.balances[i].asset_code == undefined) {
-            $scope.balances.push({"asset_code" : "XLM", "balance" : r.data.balances[i].balance, "asset_issuer" : r.data.balances[i].asset_issuer});
+            $scope.balances.push({"asset_code": "XLM", "balance": r.data.balances[i].balance, "asset_issuer": r.data.balances[i].asset_issuer});
           }
         }
+
+       for (j=0; j<$scope.vaults.length;j++) {
+        //var urlOffers = "https://horizon.stellar.org/accounts/"+ $scope.vaults[j].asset_issuer +"/offers"; 
+        var urlOffers = "https://horizon-testnet.stellar.org/accounts/"+ $scope.vaults[j].asset_issuer +"/offers"; //test
+        console.log(urlOffers);
+        $http.get(urlOffers).then(
+          function successCallback(r) {
+            console.log(r);
+          }, function errorCallback(r) {
+          $scope.error = r.data.detail;
+          console.log($scope.error);  
+       }
+       );
+      }
     } //end success
     , function errorCallback(r) {
       $scope.error = r.data.detail;
@@ -33,8 +57,10 @@ app.controller('viewWallet', function($scope,$http) {
   } //end error
   ); //end http
 }; //end add function
+  
+
 //passes public key data to modal  
-$scope.passAsset = function(assets) {
+$scope.passAsset = function(assets, user) {
       $scope.walletContents = assets;
       $scope.myModalInstance = angular.element('#buildVault').modal();
 
@@ -121,8 +147,8 @@ $scope.passAsset = function(assets) {
         });
   }
 
-  $scope.addVault = function(vault, walletContents) {
-    $scope.vaultObj = { "asset_codeOrigin" : walletContents.asset_code,
+  $scope.addVault = function(vault, walletContents, user) {
+    $scope.vaultObj = { "asset_codeOrigin": walletContents.asset_code,
      "asset_issuerOrigin": walletContents.asset_issuer,
      "tokenName": vault.tokenName,
      "tokenSymbol": vault.tokenSymbol,
@@ -142,17 +168,7 @@ $scope.passAsset = function(assets) {
           console.log($scope.error);  
           } //end error
       ); //end http
+    $interval($scope.showWallet, 10000, 1, true, user); //wait 10 seconds to refresh page
     }; //end add function
  
- $scope.timeOut = function(timeInMs) {
-    $scope.timeInMs = 0;
-
-    var countUp = function() {
-        $scope.timeInMs+= 500;
-        $timeout(countUp, 500);
-    }
-
-    $timeout(countUp, 500);
-}
-
 }); //end viewWallet Controller
