@@ -13,6 +13,8 @@ app.controller('viewWallet', function($scope,$http) {
      function successCallback(r) {
       //var atobTest = r.data.data.GBV5LKMKWLBOO56E46VRIP65OMWSU3H2FGWOUFBXANXVMZJMPNZYEX7Y;
       //console.log(atob(atobTest));
+      //var dataArray : Array = r.data.data;
+      //console.log(dataArray);
       //console.log(r.data);
       $scope.error = "";
       for (i=0; i<r.data.balances.length;i++) {
@@ -35,7 +37,9 @@ app.controller('viewWallet', function($scope,$http) {
 $scope.passAsset = function(assets) {
       $scope.walletContents = assets;
       $scope.myModalInstance = angular.element('#buildVault').modal();
+
     } //end passAsset
+
 
   $scope.validateVault = function(vault) {
     $scope.vaultObj = {"tokenName": vault.tokenName,
@@ -118,7 +122,6 @@ $scope.passAsset = function(assets) {
   }
 
   $scope.addVault = function(vault, walletContents) {
-
     $scope.vaultObj = { "asset_codeOrigin" : walletContents.asset_code,
      "asset_issuerOrigin": walletContents.asset_issuer,
      "tokenName": vault.tokenName,
@@ -140,11 +143,16 @@ $scope.passAsset = function(assets) {
           } //end error
       ); //end http
     }; //end add function
+ 
+ $scope.timeOut = function(timeInMs) {
+    $scope.timeInMs = 0;
 
-  $scope.closeModal = function ($scope) {
-       
-      $scope.myModalInstance = angular.element('#buildVault').close();
-  }
+    var countUp = function() {
+        $scope.timeInMs+= 500;
+        $timeout(countUp, 500);
+    }
 
+    $timeout(countUp, 500);
+}
 
 }); //end viewWallet Controller

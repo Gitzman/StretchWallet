@@ -95,7 +95,7 @@
       <div class="modal-header">
         <h5 class="modal-title" id="buildVault"></h5>
       </div>
-      <form name="vaultForm" ng-submit="addVault(vault, walletContents);closeModal();">
+      <form name="vaultForm" ng-submit="addVault(vault, walletContents);timeOut(3000);showWallet(user);">
 	      <div class="modal-body">
 	      	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 	          <span aria-hidden="true">&times;</span>
@@ -162,7 +162,7 @@
 	      </div>
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-secondary text-uppercase" data-dismiss="modal">Close</button>
-	        <button type="submit" ng-disabled="vaultForm.$invalid" class="btn btn-primary text-uppercase">Build Vault</button>
+	        <button type="submit" ng-disabled="vaultForm.$invalid" class="btn btn-primary text-uppercase" onclick="$('#buildVault').modal('hide')">Build Vault</button>
 	      </div>
       </form>
     </div>
