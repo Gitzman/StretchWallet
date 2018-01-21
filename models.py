@@ -20,6 +20,7 @@ from stellar_base.operation import SetOptions
 from stellar_base.operation import ManageOffer
 from stellar_base.operation import CreatePassiveOffer
 from stellar_base.operation import ManageData
+import sys
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
@@ -45,14 +46,36 @@ def buildVault(data):
     tokenSymbol = data['tokenSymbol']
     denomination = data['denomination']
     amount = data['storeAmount']
-    response, vault = deal(seed, tokenName, tokenSymbol, denomination, amount, 'createVault')
-    response2, vault = deal(seed, tokenName, tokenSymbol, denomination, amount, 'issueVault', vault)
-    return None
+    assetSymbol = data['asset_codeOrigin'],
+    try:
+        assetIssuer =  data['asset_issuerOrigin'],
+    except:
+        assetIssuer = ''
+    response, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'createVault')
+    print((response), file=sys.stderr)
+    response2, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'issueVault', vault)
+    return response2
+"""
+def redeemVault(data):
+    seed = data['seed']
+    tokenIssuer = data['tokenIssuer']
+    tokenSymbol = data['tokenSymbol']
+    denomination = data['denomination']
+    amount = data['redeemAmount']
+    assetSymbol = data['asset_codeOrigin'],
+    tokenName = ''
+    try:
+        assetIssuer =  data['asset_issuerOrigin'],
+    except:
+        assetIssuer = ''
+    response = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'redeemOffer', vaultAddress = tokenIssuer)
+    print((response), file=sys.stderr)
+    response2, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'issueVault', vault)
+    return response2
+"""
 
-
-def deal(seed, tokenName, tokenSymbol, denomination, amount, operationCode, vault =1):
+def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, amount, operationCode, vault =1, vaultAddress=''):
     kp = vault
-    passiveOffer = denomination - .00001
 
     minamount='2'
     #Load signer credentials
@@ -66,11 +89,15 @@ def deal(seed, tokenName, tokenSymbol, denomination, amount, operationCode, vaul
     newpublickey = kp.address().decode()
     newseed = kp.seed().decode()
 
+
     #Connect to Horizon
     horizon = horizon_testnet()
 
     #declareAssets
-    storedAsset = Asset("XLM")
+    if assetIssuer == '':
+        storedAsset = Asset("XLM")
+    else:
+        storedAsset = Asset(assetSymbol, assetIssuer)
     safeAsset = Asset(tokenSymbol, newpublickey)
 
     # Create Vault Account Operation Step 1
@@ -157,19 +184,14 @@ def deal(seed, tokenName, tokenSymbol, denomination, amount, operationCode, vaul
 
 
     declareVault = ManageData({
-        'data_name': newpublickey,
+            'data_name': newpublickey,
+            'data_value': tokenName})
 
-        'data_value': tokenName
-
-    })
-
-
-
-    operationCodes = {'createVault' : {'operations':[issueAccount, trustIssuer, declareVault],
+    operationCodes = {'createVault' : {'operations': [issueAccount, trustIssuer, declareVault],
                                        'signer': ogkp},
-                     'issueVault' :  {'operations' :[setAuthority, trustUser, payUser, buyOffer,
+                     'issueVault' :  {'operations' :[setAuthority, trustUser, payUser,
                                                      sellOffer],
-                                      'signer':kp},
+                                      'signer': kp},
                      'redeemOffer': {'operations':[redeemOffer],
                                      'signer': ogkp},
                      'depositOffer': {'operations':[depositOffer],
@@ -187,7 +209,7 @@ def deal(seed, tokenName, tokenSymbol, denomination, amount, operationCode, vaul
             'sequence': sequence,
             'memo': msg,
             'operations': operationCodes[operationCode]['operations'],
-            'fee': 500
+            'fee': 1000
          },
     )
     # build envelope

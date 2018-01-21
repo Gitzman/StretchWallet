@@ -10,8 +10,12 @@ import sys
 
 @app.route("/vaultDeposit", methods=['POST'])
 def vaultDeposit():
-   print((json.loads(request.data)), file=sys.stderr)
    buildVault(json.loads(request.data))
+   return render_template('viewwallet.html')
+
+@app.route("/vaultRedemption", methods=['POST'])
+def vaultRedemption():
+   redeemVault(json.loads(request.data))
    return render_template('viewwallet.html')
 
 
