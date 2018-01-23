@@ -61,6 +61,9 @@
 										<td>
 											Amount in Vault
 										</td>
+										<td>
+											Vault List
+										</td>
 								    </tr>
 									<tr ng-repeat="assets in balances">
 										<td>
@@ -74,6 +77,12 @@
 											<button ng-click="passAsset(assets,user)" type="button" class="btn btn-danger">
 											  <span class="glyphicon glyphicon-lock"></span> <span class="text-uppercase">Build Vault</span>
 											</button>
+										</td>
+										<td>
+											<div ng-repeat="vaults in assets.vaults track by $index">
+												{{vaults.asset_code}}
+												{{vaults.balance*vaults.price}} {{assets.asset_code}}
+											</div>
 										</td>
 									</tr>
 								</thead>
