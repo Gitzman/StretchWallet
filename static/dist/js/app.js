@@ -3,12 +3,14 @@ var app = angular.module('app', ['components'])
 app.controller('viewWallet', function($scope,$http,$interval,$timeout) {
 walletViewer = this;
 
+$scope.vaultsExist = false; //turn off vault column in wallet view unless vaults exist in data object
+
   $scope.showWallet = function(user) { //public key retrieves wallet contents
     $scope.balances = [];
     $scope.vaults = [];
 
-    //var url = 'https://horizon.stellar.org/accounts/' + user.publickey; //production
-    var url = 'https://horizon-testnet.stellar.org/accounts/' + user.publickey; //test
+    var url = 'https://horizon.stellar.org/accounts/' + user.publickey; //production
+    //var url = 'https://horizon-testnet.stellar.org/accounts/' + user.publickey; //test
     
     $http.get(url).then(
       function successCallback(r) {
@@ -51,7 +53,8 @@ walletViewer = this;
 
               for (var k=0; k<$scope.balances.length;k++) {
                 if ($scope.assetOrigin == $scope.balances[k].asset_code) {
-                  $scope.balances[k].vaults.push({"asset_code": vaults.asset_code, "balance": vaults.balance, "asset_issuer": vaults.asset_issuer, "asset_name": vaults.asset_name, "price": $scope.priceOrigin});
+                  $scope.balances[k].vaults.push({"asset_code": vaults.asset_code, "balance": vaults.balance, "asset_issuer": vaults.asset_issuer, "asset_name": vaults.asset_name, "price": $scope.priceOrigin}); //price is exchange rate
+                  $scope.vaultsExist = true;
                   break;
                 }
               }
@@ -196,5 +199,12 @@ walletViewer = this;
     $interval(AlbumCtrl, 0, 1, true); 
 
   } //end add function
+
+  //show Vault Details in Wallet
+  $scope.IsHidden = true;
+  $scope.toggle = function() {
+      //If DIV is hidden it will be visible and vice versa.
+      $scope.IsHidden = $scope.IsHidden ? false : true;
+  } //end toggle
  
 }); //end viewWallet Controller

@@ -19,7 +19,7 @@
 		<script src="/static/dist/js/custom.js"></script>
     	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
 
-		<link href="https://fonts.googleapis.com/css?family=Raleway:400,600" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Raleway:400,500,600,700,800" rel="stylesheet">
 	</head>
 	<body>
 		<header id="header"></header>
@@ -39,50 +39,95 @@
 					             	<label for="publickey"></label>
 					                <input class="input-lg" type="text" placeholder="ex: GCQUV7WA4SP3LNTRDOBSURENX6WA5JU7Q5B54Y5I2G4IRTGG2IZ6M72M" ng-model="user.publickey" size=80 required>
 					            </div>
-					            <div class="form-group text-right text-italic gray">Hint: Stellar Network public keys begin with 'G'</div>
+					            <div class="form-group text-right gray text400">Stellar Network public keys begin with "G"</div>
 					            <div ng-show="error.length" class="errorMessage form-group">
 					            	This is an invalid public key. Please retry.
 					            </div>
-					            <button type="submit" id="btn-view-wallet" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-eye-open"></span> View Your Wallet</button>
+					            <button type="submit" id="btn-view-wallet" class="btn btn-primary btn-lg btn-block text-uppercase"><span class="glyphicon glyphicon-eye-open"></span> View Your Wallet</button>
 					        </form>
 	        			</div>
 	        		</div>
-	        	    <div class="row top-padding35">
+	        		<div class="row top-padding35">
+	        			<div ng-show="balances.length>0" id="walletSummary" class="col-sm-12 col-md-9 col-md-push-2 wallet">
+	        				<h3>
+	        					Asset Summary
+	        				</h3>
+	        			</div>
+	        		</div>
+	        	    <div class="row">
 						<div ng-show="balances.length>0" id="wallet" class="col-sm-12 col-md-9 col-md-push-2 wallet">
-							<table class="table table-striped table-bordered">
+							<table class="table table-bordered">
 								<thead>
 									<tr>
-										<td>
-											Token
-										</td>
-										<td>
-											Available Balance
-										</td>
-										<td>
-											Amount in Vault
-										</td>
-										<td>
-											Vault List
-										</td>
+										<th class="text-uppercase shaded" colspan="2">
+											Available
+										</th>
+										<th class="text-uppercase" colspan="2">
+											Stored
+										</th>
 								    </tr>
-									<tr ng-repeat="assets in balances">
-										<td>
+									<tr>
+										<th class="h5 shaded">
+											Token
+										</th>
+										<th class="h5 shaded">
+											Balance
+										</th>
+										<th class="h5">
+											Total Amount in Vault
+										</th>
+										<th class="h5" ng-show="vaultsExist">
+											Vault Details
+										</th>
+								    </tr>
+									<tr ng-repeat-start="assets in balances">
+										<td class="shaded">
 											{{assets.asset_code}}
 										</td>
-										<td>
+										<td class="shaded">
 											{{assets.balance}}
 										</td>
 										<td>
+											<span ng-show="assets.vaults.length==0">0</span>
+										</td>
+										<td ng-show="assets.vaults.length>0">
+											<button ng-show="assets.vaults.length>0" ng-click="toggle()" type="button" class="btn btn-sm btn-link">
+											  <span class="">See Details</span>
+											</button>
+											<table ng-hide="IsHidden" class="table table-striped">
+												<tbody>
+													<tr>
+														<th>
+															Vault Asset (Symbol) Balance
+														</th>
+														<th>
+															Exchange Rate
+														</th>
+														<th>
+															Stored Balance (Total)
+														</th>
+													</tr>
+													<tr ng-repeat="vaults in assets.vaults track by $index">
+														<td>{{vaults.asset_name}} ({{vaults.asset_code}}) {{vaults.balance}}</td>
+														<td>{{vaults.price}}</td>
+														<td>{{vaults.balance*vaults.price}} {{assets.asset_code}}</td>
+													</tr>
+												</tbody>
+											</table>
+										</td>
+									</tr>
+									<tr ng-repeat-end>
+										<td colspan="2" class="shaded">
 											<!-- Button trigger modal -->
-											<button ng-click="passAsset(assets,user)" type="button" class="btn btn-danger">
-											  <span class="glyphicon glyphicon-lock"></span> <span class="text-uppercase">Build Vault</span>
+											<button ng-click="" type="button" class="btn btn-sm btn-default fontBlue">
+											  <span class="glyphicon glyphicon-send"></span> <span class="text-uppercase"> Transfer {{assets.asset_code}}</span>
 											</button>
 										</td>
-										<td>
-											<div ng-repeat="vaults in assets.vaults track by $index">
-												{{vaults.asset_code}}
-												{{vaults.balance*vaults.price}} {{assets.asset_code}}
-											</div>
+										<td colspan ="2">
+											<!-- Button trigger modal -->
+											<button ng-click="passAsset(assets,user)" type="button" class="btn btn-sm btn-default fontBlue">
+											  <span class="glyphicon glyphicon-folder-open"></span> <span class="text-uppercase"> <span ng-show="assets.vaults.length==0">Build</span><span ng-show="assets.vaults.length>0">Manage</span> {{assets.asset_code}} Vault</span>
+											</button>
 										</td>
 									</tr>
 								</thead>

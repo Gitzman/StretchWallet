@@ -56,6 +56,10 @@ h1, h2, h3, h4, h5, h6, .btn {
   font-weight: inherit;
 }
 
+th, .table {
+  text-align: center;
+}
+
 #footer > nav.navbar {
   position:fixed;
   bottom:0;
@@ -272,8 +276,20 @@ li .feed {
   border: 2px solid #777 !important;
 }
 
+.border-left-gray {
+  border-left: 1px solid #777;
+}
+
+.border-right-gray {
+  border-right: 1px solid #777;
+}
+
 .text-bold {
   font-weight: bold;
+}
+
+.text400 {
+  font-weight: 400;
 }
 
 .text-italic {
@@ -286,4 +302,8 @@ li .feed {
 
 .fontsize18 {
   font-size: 18px;
+}
+
+.shaded {
+  background: aliceblue;
 }
