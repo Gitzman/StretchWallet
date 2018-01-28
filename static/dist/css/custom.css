@@ -4,8 +4,8 @@ html, body {
 
 body {
     background: whitesmoke;
-    font-family: 'Raleway', sans-serif;
-    font-weight: 600;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
 }
 
 #wrapper {
@@ -60,6 +60,18 @@ th, .table {
   text-align: center;
 }
 
+.brand-font {
+  font-family: 'Economica', sans-serif;
+  font-weight: 700;
+  font-size:24px;
+}
+.brand-W {
+  font-family: 'Economica', sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size:32px;
+}
+
 #footer > nav.navbar {
   position:fixed;
   bottom:0;
@@ -75,6 +87,10 @@ nav.navbar.navbar-fixed-top {
 
 .navbar {
   background: white;
+}
+
+.navbar-right {
+  padding-top: 5px;
 }
 
 
@@ -153,7 +169,6 @@ button.navbar-toggle {
     width: 130px;
     font-size: 18px;
 }
-
 
 label.long-form {
     width: 600px;
@@ -285,7 +300,7 @@ li .feed {
 }
 
 .text-bold {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .text400 {
@@ -302,6 +317,10 @@ li .feed {
 
 .fontsize18 {
   font-size: 18px;
+}
+
+.fontsize16 {
+  font-size: 16px;
 }
 
 .shaded {

@@ -9,8 +9,8 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
     $scope.balances = [];
     $scope.vaults = [];
 
-    var url = 'https://horizon.stellar.org/accounts/' + user.publickey; //production
-    //var url = 'https://horizon-testnet.stellar.org/accounts/' + user.publickey; //test
+    //var url = 'https://horizon.stellar.org/accounts/' + user.publickey; //production
+    var url = 'https://horizon-testnet.stellar.org/accounts/' + user.publickey; //test
     
     $http.get(url).then(
       function successCallback(r) {
@@ -19,28 +19,38 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
         for (i=0; i<r.data.balances.length;i++) {
           //console.log(r.data);
           if (r.data.balances[i].asset_code == undefined) { //XLM add
-            $scope.balances.push({"asset_code": "XLM", "balance": r.data.balances[i].balance, "asset_issuer": r.data.balances[i].asset_issuer, "vaults" : []});
+            $scope.balances.push({"asset_code": "XLM", "balance": parseFloat(r.data.balances[i].balance), "asset_issuer": r.data.balances[i].asset_issuer, "vaults" : []});
           }
-          if (r.data.balances[i].asset_code !== undefined) {
-            if (r.data.data.hasOwnProperty(r.data.balances[i].asset_issuer)){
-              $scope.vaults.push({"asset_code": r.data.balances[i].asset_code, "balance": r.data.balances[i].balance, "asset_issuer": r.data.balances[i].asset_issuer, "asset_name": atob(r.data.data[r.data.balances[i].asset_issuer.toString()])});
-              console.log($scope.vaults[i].asset_name);
+          if (r.data.balances[i].asset_code !== undefined) { //Vaults add
+            if (r.data.data.hasOwnProperty(r.data.balances[i].asset_issuer)) {
+              if (r.data.balances[i].balance > 0) {
+                $scope.vaults.push({"asset_code": r.data.balances[i].asset_code, "balance": parseFloat(r.data.balances[i].balance), "asset_issuer": r.data.balances[i].asset_issuer, "asset_name": atob(r.data.data[r.data.balances[i].asset_issuer.toString()])});
+              }
             }
-            else {
-              $scope.balances.push({"asset_code": r.data.balances[i].asset_code, "balance": r.data.balances[i].balance, "asset_issuer": r.data.balances[i].asset_issuer, "vaults" : []});
+            else { //Remaining currencies add
+              $scope.balances.push({"asset_code": r.data.balances[i].asset_code, "balance": parseFloat(r.data.balances[i].balance), "asset_issuer": r.data.balances[i].asset_issuer, "vaults" : []});
             }
           }
         }
+        console.log($scope.vaults);
+        $scope.nameArray=[]; //keep track of vault names to merge vaults with the same asset name
         angular.forEach($scope.vaults, function(vaults) {
           //var urlOffers = "https://horizon.stellar.org/accounts/"+ $scope.vaults[j].asset_issuer +"/offers"; //production
           var urlOffers = "https://horizon-testnet.stellar.org/accounts/"+ vaults.asset_issuer +"/offers"; //test
 
           $scope.assetOrigin="";
           $scope.priceOrigin="";
+          $scope.availBalance="";
+
+          //capture index of vault name to sum balance by vault
+          var index = $scope.nameArray.indexOf(vaults.asset_name.toString(), 0);
+          if (index == -1) {
+            $scope.nameArray.push(vaults.asset_name);
+          }
 
           $http.get(urlOffers).then(
             function successCallback(r) {
-              //console.log(r);
+              console.log(r);
               if (r.data._embedded.records[0].selling.asset_type !== undefined) {
                 $scope.assetOrigin = "XLM";
               }
@@ -48,12 +58,24 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
                 $scope.assetOrigin = r.data._embedded.records[0].selling.asset_code;
               }
               if (r.data._embedded.records[0].price !== undefined) {
-                $scope.priceOrigin = (1 / r.data._embedded.records[0].price);
-              }           
-
+                $scope.priceOrigin = parseInt(1 / r.data._embedded.records[0].price);
+              }  
+              if (r.data._embedded.records[0].amount !== undefined) {
+                $scope.availBalance = parseFloat(r.data._embedded.records[0].amount);
+              }
               for (var k=0; k<$scope.balances.length;k++) {
                 if ($scope.assetOrigin == $scope.balances[k].asset_code) {
-                  $scope.balances[k].vaults.push({"asset_code": vaults.asset_code, "balance": vaults.balance, "asset_issuer": vaults.asset_issuer, "asset_name": vaults.asset_name, "price": $scope.priceOrigin}); //price is exchange rate
+                  if (index == -1) {
+                    $scope.balances[k].vaults.push({"asset_code": vaults.asset_code, "balance": vaults.balance, "availBalance": $scope.availBalance, "asset_issuer": vaults.asset_issuer, "asset_name": vaults.asset_name, "price": $scope.priceOrigin}); //price is exchange rate
+                    
+                  }
+                  if (index > -1) {
+                    console.log("current vault row balance " + vaults.balance);
+                    console.log("current vault INDEX row balance " + $scope.balances[k].vaults[index].balance);
+                    $scope.balances[k].vaults[index].balance = parseFloat($scope.balances[k].vaults[index].balance) + parseFloat(vaults.balance);
+                    $scope.balances[k].vaults[index].availBalance = parseFloat($scope.balances[k].vaults[index].availBalance) + parseFloat($scope.availBalance);
+                    //ADD ISSUER AS A AN ARRAY
+                  }
                   $scope.vaultsExist = true;
                   break;
                 }
@@ -64,6 +86,17 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
                 console.log($scope.error);  
             }
           );
+          //calculate totals  
+          $scope.getTotal = function(){
+              var total = 0;
+              for(var i = 0; i < $scope.balances.length; i++){
+                for(var j = 0; j < $scope.balances[i].vaults.length; j++){
+                    var vaultavailBalance = $scope.balances[i].vaults[j].availBalance;
+                    total += vaultavailBalance;
+                }
+              }
+              return total;
+          }
         });
       console.log($scope.balances);  
       } //end success
@@ -73,11 +106,12 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
       } //end error
     ); //end http
   } //end showWallet function
-  
+
 
 //passes public key data to modal  
-  $scope.passAsset = function(assets, user) {
+  $scope.passAsset = function(assets, vaults, user) {
     $scope.walletContents = assets;
+    $scope.vaultContents = assets.vaults;
     $scope.myModalInstance = angular.element('#buildVault').modal();
   } //end passAsset
 

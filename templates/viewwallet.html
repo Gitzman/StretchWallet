@@ -8,7 +8,9 @@
 		<!-- Latest compiled and minified CSS -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 		<link rel="stylesheet" media="screen" href="/static/dist/css/custom.css" />
+		<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet"> <!--toggle-->
 		<link rel="stylesheet" href="/static/dist/css/todo.css" />
+
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -16,10 +18,12 @@
 		<script src="/static/dist/js/components.js"></script>
 		<script src="/static/dist/js/app.js"></script>
 		<script src="/static/dist/js/todo.js"></script>
+		<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script> <!--toggle-->
 		<script src="/static/dist/js/custom.js"></script>
     	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
 
-		<link href="https://fonts.googleapis.com/css?family=Raleway:400,500,600,700,800" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Economica:700,700i" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,600" rel="stylesheet">
 	</head>
 	<body>
 		<header id="header"></header>
@@ -29,12 +33,10 @@
 		<div id="wrapper">
 			<div id="main">
 				<div class="formBG container">
-					<div class="row" >
-						{{counter}}
+					<div class="row">
 						<div class="col-sm-12 col-md-9 col-md-push-2 text-center">
 	            			<form ng-submit="showWallet(user)">
-	            			<h1>Enter your Public Key<small> for the Stellar Network Account</small></h1>
-					        
+	            				<h1>Enter your Public Key<small> for the Stellar Network Account</small></h1>
 								<div class="form-group">
 					             	<label for="publickey"></label>
 					                <input class="input-lg" type="text" placeholder="ex: GCQUV7WA4SP3LNTRDOBSURENX6WA5JU7Q5B54Y5I2G4IRTGG2IZ6M72M" ng-model="user.publickey" size=80 required>
@@ -47,6 +49,13 @@
 					        </form>
 	        			</div>
 	        		</div>
+	        		<div class="row" ng-show="counter>0">
+						<div class="col-sm-12 col-md-9 col-md-push-2 text-center top-padding35">
+							<p class="alert alert-danger fontsize16">
+								The Stellar Network takes a few seconds to process transactions. A manual refresh may be required.<br>A courtesy refresh will occur in <span class="text-bold">{{counter}}</span>.
+							</p>
+						</div>
+					</div>
 	        		<div class="row top-padding35">
 	        			<div ng-show="balances.length>0" id="walletSummary" class="col-sm-12 col-md-9 col-md-push-2 wallet">
 	        				<h3>
@@ -89,6 +98,7 @@
 										</td>
 										<td>
 											<span ng-show="assets.vaults.length==0">0</span>
+											<span ng-show="assets.vaults.length>0">{{getTotal()}} {{assets.asset_code}}</span>
 										</td>
 										<td ng-show="assets.vaults.length>0">
 											<button ng-show="assets.vaults.length>0" ng-click="toggle()" type="button" class="btn btn-sm btn-link">
@@ -108,9 +118,9 @@
 														</th>
 													</tr>
 													<tr ng-repeat="vaults in assets.vaults track by $index">
-														<td>{{vaults.asset_name}} ({{vaults.asset_code}}) {{vaults.balance}}</td>
+														<td>{{vaults.asset_name}} ({{vaults.asset_code}}) {{vaults.availBalance / vaults.price}}</td>
 														<td>{{vaults.price}}</td>
-														<td>{{vaults.balance*vaults.price}} {{assets.asset_code}}</td>
+														<td>{{vaults.availBalance}} {{assets.asset_code}}</td>
 													</tr>
 												</tbody>
 											</table>
@@ -144,83 +154,93 @@
 
 <!-- Add Vault Modal -->
 <div class="modal fade" id="buildVault" tabindex="-1" role="dialog" aria-labelledby="buildVaultLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="buildVault"></h5>
-      </div>
-      <form name="vaultForm" ng-submit="addVault(vault, walletContents, user)">
-	      <div class="modal-body">
-	      	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-	          <span aria-hidden="true">&times;</span>
-	        </button>
-	        <h1>Build Vault <small>for asset {{walletContents.asset_code}}</small></h1>
-				<div class="form-group">
-					<label for="tokenName">Token Name</label>
-					<input class="input-lg" type="text" name="tokenName" ng-model="vault.tokenName" required>
+  	<div class="modal-dialog modal-lg" role="document">
+    	<div class="modal-content">
+      		<div class="modal-header">
+        		<div class="modal-title" id="buildVault">
+        			<div class="right-float">
+	      				<input type="checkbox" checked data-size="large" data-on="Withdrawal" data-off="Deposit" data-width="140" data-toggle="toggle">
+	      			</div>
 				</div>
-				<div class="form-group">
-					<label for="tokenSymbol">Token Symbol</label>
-					<input class="input-lg" type="text" name="tokenSymbol" ng-model="vault.tokenSymbol" ng-minlength="1" ng-maxlength="12" required>
-					<div role="alert">
-				      <span class="errorMessage" ng-show="vaultForm.tokenSymbol.$error.minlength">
-				        Too short! Keep going...
-				      </span>
-				      <span class="errorMessage" ng-show="vaultForm.tokenSymbol.$error.maxlength">
-				        Too long! 12 alphanumeric characters is the maximum.
-				      </span>
-				    </div>
-				</div>
-				<div class="form-group">
-					<label for="storeAmount">Store</label>
-					<input class="input-lg" type="number" name="storeAmount" ng-model="vault.storeAmount" ng-max={{walletContents.balance}} required> {{walletContents.asset_code}} of {{walletContents.balance}} in vault
-					<div role="alert">
-				      <span class="errorMessage" ng-show="vaultForm.storeAmount.$error.max">
-				        Not enough {{walletContents.asset_code}}!
-				      </span>
-				    </div>
-				</div>
-				<div class="form-group">
-					<label for="denomination">Exchange</label>
-					<input class="input-lg" type="number" id="denomination" name="denomination" ng-model="vault.denomination" ng-pattern="/[0-9]+/" required> {{walletContents.asset_code}} for 1 {{vault.tokenSymbol}}
-					<div role="alert">
-				      <span class="errorMessage" ng-show="vaultForm.denomination.$error.pattern">
-				        Whole numbers only!
-				      </span>
-				    </div>
-				</div>
-				<div class="form-group">
-					<h1>
-						Summary
-					</h1>
-					<div>
-						You will create {{(vault.storeAmount/vault.denomination) | number:7}} {{vault.tokenSymbol}}
+      		</div>
+      		<form name="vaultForm" ng-submit="addVault(vault, walletContents, user)">
+		      	<div class="modal-body">
+		      		<h1 class="text-center">
+		      			<span ng-show="walletContents.vaults.length==0">Build</span>
+		      			<span ng-show="walletContents.vaults.length>0">Manage</span>
+		      			 Vault 
+		      			 <small>for asset {{walletContents.asset_code}}</small>
+		      		</h1>
+					<div class="form-group">
+						<label for="tokenName">Token Name</label>
+						<select class="form-control input-lg" name="tokenNameDrop">
+							<option ng-repeat="option in walletContents.vaults" value="{{option.asset_name}}">{{option.asset_name}}</option>
+							<option>Create New</option>
+						</select>
+						<input class="input-lg" type="text" name="tokenName" ng-model="vault.tokenName" required>
 					</div>
-					<br>
-					<div>
-						New {{walletContents.asset_code}} balance will be: {{walletContents.balance-vault.storeAmount | number:7}}
+					<div class="form-group">
+						<label for="tokenSymbol">Token Symbol</label>
+						<input class="input-lg" type="text" name="tokenSymbol" ng-model="vault.tokenSymbol" ng-minlength="1" ng-maxlength="12" required>
+						<div role="alert">
+					      <span class="errorMessage" ng-show="vaultForm.tokenSymbol.$error.minlength">
+					        Too short! Keep going...
+					      </span>
+					      <span class="errorMessage" ng-show="vaultForm.tokenSymbol.$error.maxlength">
+					        Too long! 12 alphanumeric characters is the maximum.
+					      </span>
+					    </div>
 					</div>
-				</div>
-				<div class="form-group gray-border" ng-show="vaultForm.tokenName.$valid && vaultForm.tokenSymbol.$valid && vaultForm.storeAmount.$valid&&vaultForm.denomination.$valid">
-					<label class="long-form" for="seed">Enter private key to sign the transaction</label>
-					<input class="input-lg" name="seed" type="text" ng-model="vault.seed" ng-minlength="56" ng-maxlength="56" size=72 required>
-					<div role="alert">
-				      <span class="errorMessage" ng-show="vaultForm.seed.$error.minlength">
-				        Too short! Keep going..
-				      </span>
-				      <span class="errorMessage" ng-show="vaultForm.seed.$error.maxlength">
-				        Too long! Private Keys are 56-digit alphanumeric codes begin with "S".
-				      </span>
-				    </div>
-				</div>
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-secondary text-uppercase" data-dismiss="modal">Close</button>
-	        <button type="submit" ng-disabled="vaultForm.$invalid" class="btn btn-primary text-uppercase" onclick="$('#buildVault').modal('hide')">Build Vault</button>
-	      </div>
-      </form>
-    </div>
-  </div>
+					<div class="form-group">
+						<label for="storeAmount">Store</label>
+						<input class="input-lg" type="number" name="storeAmount" ng-model="vault.storeAmount" ng-max={{walletContents.balance}} required> {{walletContents.asset_code}} of {{walletContents.balance}} in vault
+						<div role="alert">
+					      <span class="errorMessage" ng-show="vaultForm.storeAmount.$error.max">
+					        Not enough {{walletContents.asset_code}}!
+					      </span>
+					    </div>
+					</div>
+					<div class="form-group">
+						<label for="denomination">Exchange</label>
+						<input class="input-lg" type="number" id="denomination" name="denomination" ng-model="vault.denomination" ng-pattern="/[0-9]+/" required> {{walletContents.asset_code}} for 1 {{vault.tokenSymbol}}
+						<div role="alert">
+					      <span class="errorMessage" ng-show="vaultForm.denomination.$error.pattern">
+					        Whole numbers only!
+					      </span>
+					    </div>
+					</div>
+					<div class="form-group">
+						<h1>
+							Summary
+						</h1>
+						<div>
+							You will create {{(vault.storeAmount/vault.denomination) | number:7}} {{vault.tokenSymbol}}
+						</div>
+						<br>
+						<div>
+							New {{walletContents.asset_code}} balance will be: {{walletContents.balance-vault.storeAmount | number:7}}
+						</div>
+					</div>
+					<div class="form-group gray-border" ng-show="vaultForm.tokenName.$valid && vaultForm.tokenSymbol.$valid && vaultForm.storeAmount.$valid&&vaultForm.denomination.$valid">
+						<label class="long-form" for="seed">Enter private key to sign the transaction</label>
+						<input class="input-lg" name="seed" type="text" ng-model="vault.seed" ng-minlength="56" ng-maxlength="56" size=72 required>
+						<div role="alert">
+					      <span class="errorMessage" ng-show="vaultForm.seed.$error.minlength">
+					        Too short! Keep going..
+					      </span>
+					      <span class="errorMessage" ng-show="vaultForm.seed.$error.maxlength">
+					        Too long! Private Keys are 56-digit alphanumeric codes begin with "S".
+					      </span>
+					    </div>
+					</div>
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary text-uppercase" data-dismiss="modal">Close</button>
+		        <button type="submit" ng-disabled="vaultForm.$invalid" class="btn btn-primary text-uppercase" onclick="$('#buildVault').modal('hide')">Build Vault</button>
+		      </div>
+	      </form>
+    	</div>
+  	</div>
 </div>
 
 	</body>
