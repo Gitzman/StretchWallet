@@ -20,34 +20,7 @@ div#main {
     padding-top: 2%;
 }
 
-/*
-#wrapper {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  justify-content: space-around;
-}
 
-@media (min-width: 960px) {
-  #main {
-    margin-top: 0%;
-    margin-bottom: 0%;
-  }
-}
-@media (min-width: 780px) and (max-width: 959px) {
-  #main {
-    margin-top: 8%;
-    margin-bottom: 8%;
-  }
-}
-@media (max-width: 779px) {
-  #main {
-    margin-top: 20%;
-    margin-bottom: 20%;
-  }
-}
-*/
 h1 {
   color: #337ab7;
 }
@@ -63,8 +36,16 @@ th, .table {
 .brand-font {
   font-family: 'Economica', sans-serif;
   font-weight: 700;
-  font-size:24px;
+  font-size: 24px;
+  letter-spacing: 1px;
+  -webkit-transform: scale(1,1.25);
+  -moz-transform: scale(1,1.25);
+  -ms-transform: scale(1,1.25);
+  -o-transform: scale(1,1.25);
+  transform: scale(1,1.25);
+  /*padding-left: 56px;*/
 }
+
 .brand-W {
   font-family: 'Economica', sans-serif;
   font-weight: 700;
@@ -99,7 +80,7 @@ button.navbar-toggle {
 }
 
 .navbar .nav>li>a {
-    float: right;
+    text-align: center;
     padding: 9px 10px 11px;
     line-height: 19px;
     color: #337ab7;
@@ -149,6 +130,9 @@ button.navbar-toggle {
     }
     .collapsing {
         overflow: hidden!important;
+    }
+    .nav {
+        margin: auto !important;
     }
 }
 
@@ -216,6 +200,10 @@ li .feed {
   padding: 35px;
   border: 1px solid #337ab7;
   box-shadow: 1px 1px 1px #337ab7;
+}
+
+.form-group input {
+    max-width: 100%;
 }
 
 .block {
