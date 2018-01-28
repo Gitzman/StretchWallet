@@ -10,8 +10,8 @@ import sys
 
 @app.route("/vaultDeposit", methods=['POST'])
 def vaultDeposit():
-   buildVault(json.loads(request.data))
-   return render_template('viewwallet.html')
+   xdr, labLink = buildVault(json.loads(request.data))
+   return jsonify({'envelope':xdr, 'labLink': labLink })
 
 @app.route("/vaultRedemption", methods=['POST'])
 def vaultRedemption():

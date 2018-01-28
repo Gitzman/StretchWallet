@@ -56,7 +56,18 @@ def buildVault(data):
     labLink = "https://www.stellar.org/laboratory/#txsigner?xdr={0}&network=test".format(urllib.quote_plus(xdr))
     #response2, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'issueVault', vault)
     print((xdr), file=sys.stderr)
-    return {'envelope':xdr,'labLink':labLink}
+    return xdr, labLink
+
+
+    """
+
+              StellarSdk.Network.useTestNetwork();
+              var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+
+              var transaction = new StellarSdk.Transaction(r.data.envelope);
+              transaction.sign(StellarSdk.Keypair.fromSecret($scope.vaultObj.seed));
+              server.submitTransaction(transaction)
+    """
 
 def redeemVault(data):
     seed = data['seed']
