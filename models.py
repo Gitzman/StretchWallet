@@ -51,11 +51,13 @@ def buildVault(data):
         assetIssuer =  data['asset_issuerOrigin'],
     except:
         assetIssuer = ''
-    response, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'createVault')
-    print((response), file=sys.stderr)
-    response2, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'issueVault', vault)
-    return response2
-"""
+
+    xdr = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'createVault')
+    labLink = "https://www.stellar.org/laboratory/#txsigner?xdr={0}&network=test".format(urllib.quote_plus(xdr))
+    #response2, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'issueVault', vault)
+    print((xdr), file=sys.stderr)
+    return {'envelope':xdr,'labLink':labLink}
+
 def redeemVault(data):
     seed = data['seed']
     tokenIssuer = data['tokenIssuer']
@@ -72,7 +74,6 @@ def redeemVault(data):
     print((response), file=sys.stderr)
     response2, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'issueVault', vault)
     return response2
-"""
 
 def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, amount, operationCode, vault =1, vaultAddress=''):
     kp = vault
@@ -86,7 +87,7 @@ def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, am
     #Create Vault Account Credentials
     if kp == 1:
         kp = Keypair.random()
-    newpublickey = kp.address().decode()
+    vaultKey = kp.address().decode()
     newseed = kp.seed().decode()
 
 
@@ -98,11 +99,11 @@ def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, am
         storedAsset = Asset("XLM")
     else:
         storedAsset = Asset(assetSymbol, assetIssuer)
-    safeAsset = Asset(tokenSymbol, newpublickey)
+    safeAsset = Asset(tokenSymbol, vaultKey)
 
     # Create Vault Account Operation Step 1
     issueAccount = CreateAccount({
-        'destination': newpublickey,
+        'destination': vaultKey,
         'starting_balance': str (amount)
     })
 
@@ -115,13 +116,14 @@ def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, am
 
     #Set Options to Revocable Authority and Required Authority Step 3
     setAuthority = SetOptions({
-
-        'set_flags': 1,
+        'source': vaultKey,
+        'set_flags': 1
     })
 
 
     #Accept trust of user Step 4
     trustUser = AllowTrust({
+        'source' : vaultKey,
         'trustor': publickey,
         'asset_code': tokenSymbol,
         'authorize' : 'True'
@@ -129,7 +131,7 @@ def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, am
 
     #Pay new asset to user Step 5
     payUser = Payment({
-        # 'source' : Alice.address().decode(),
+        'source' : vaultKey,
         'destination': publickey,
         'amount': str(amount/denomination),
         'asset':safeAsset
@@ -145,6 +147,7 @@ def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, am
 
     #Create offer to sell token
     sellOffer = CreatePassiveOffer({
+        'source' : vaultKey,
         'selling': storedAsset,
         'buying': safeAsset,
         'amount': str(amount),
@@ -170,28 +173,19 @@ def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, am
 
 
     #Kill Account Step 8
-    killAccount = SetOptions({
-    'low_threshold' : '1',
-    'medium_threshold' :'3',
-    'high_threshold' : '3'
+    killVault = SetOptions({
+        'source' : vaultKey,
+        'master_weight' : 0
 })
-    testFund = Payment({
-        # 'source' : Alice.address().decode(),
-        'destination': newpublickey,
-        'amount': '10000',
-        'asset':safeAsset
-    })
-
 
     declareVault = ManageData({
-            'data_name': newpublickey,
+            'data_name': vaultKey,
             'data_value': tokenName})
 
-    operationCodes = {'createVault' : {'operations': [issueAccount, trustIssuer, declareVault],
+    operationCodes = {'createVault' : {'operations': [issueAccount, trustIssuer, declareVault,
+                                                    setAuthority, trustUser, payUser,
+                                                    sellOffer, killVault],
                                        'signer': ogkp},
-                     'issueVault' :  {'operations' :[setAuthority, trustUser, payUser,
-                                                     sellOffer],
-                                      'signer': kp},
                      'redeemOffer': {'operations':[redeemOffer],
                                      'signer': ogkp},
                      'depositOffer': {'operations':[depositOffer],
@@ -209,15 +203,15 @@ def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, am
             'sequence': sequence,
             'memo': msg,
             'operations': operationCodes[operationCode]['operations'],
-            'fee': 1000
+            'fee': 100 * len(operationCodes[operationCode]['operations'])
          },
     )
     # build envelope
     envelope = Te(tx=tx, opts={"network_id": "TESTNET"})
-    # sign
-    envelope.sign(sourceAccount)
+    # sign with vault
+    envelope.sign(kp)
 
     # submit
     xdr = envelope.xdr()
-    response = horizon.submit(xdr)
-    return response, kp
+    #response = horizon.submit(xdr)
+    return xdr
