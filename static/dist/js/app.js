@@ -4,6 +4,8 @@ app.controller('viewWallet', function($scope,$http,$interval,$timeout) {
 walletViewer = this;
 
 $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults exist in data object
+StellarSdk.Network.useTestNetwork();
+var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
 
   $scope.showWallet = function(user) { //public key retrieves wallet contents
     $scope.balances = [];
@@ -11,7 +13,7 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
 
     //var url = 'https://horizon.stellar.org/accounts/' + user.publickey; //production
     var url = 'https://horizon-testnet.stellar.org/accounts/' + user.publickey; //test
-    
+
     $http.get(url).then(
       function successCallback(r) {
         //console.log(r.data);
@@ -59,7 +61,7 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
               }
               if (r.data._embedded.records[0].price !== undefined) {
                 $scope.priceOrigin = parseInt(1 / r.data._embedded.records[0].price);
-              }  
+              }
               if (r.data._embedded.records[0].amount !== undefined) {
                 $scope.availBalance = parseFloat(r.data._embedded.records[0].amount);
               }
@@ -67,7 +69,7 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
                 if ($scope.assetOrigin == $scope.balances[k].asset_code) {
                   if (index == -1) {
                     $scope.balances[k].vaults.push({"asset_code": vaults.asset_code, "balance": vaults.balance, "availBalance": $scope.availBalance, "asset_issuer": vaults.asset_issuer, "asset_name": vaults.asset_name, "price": $scope.priceOrigin}); //price is exchange rate
-                    
+
                   }
                   if (index > -1) {
                     console.log("current vault row balance " + vaults.balance);
@@ -83,10 +85,10 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
               console.log($scope.balances);
             }, function errorCallback(r) {
                 $scope.error = r.data.detail;
-                console.log($scope.error);  
+                console.log($scope.error);
             }
           );
-          //calculate totals  
+          //calculate totals
           $scope.getTotal = function(){
               var total = 0;
               for(var i = 0; i < $scope.balances.length; i++){
@@ -98,17 +100,17 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
               return total;
           }
         });
-      console.log($scope.balances);  
+      console.log($scope.balances);
       } //end success
       , function errorCallback(r) {
         $scope.error = r.data.detail;
-        console.log($scope.error);  
+        console.log($scope.error);
       } //end error
     ); //end http
   } //end showWallet function
 
 
-//passes public key data to modal  
+//passes public key data to modal
   $scope.passAsset = function(assets, vaults, user) {
     $scope.walletContents = assets;
     $scope.vaultContents = assets.vaults;
@@ -208,15 +210,31 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
 
     $http.post('/vaultDeposit', $scope.vaultObj).then(
       function successCallback(r) {
+        console.log(r.data)
+        // wrap the envelope as a transaction object
+        var transaction = new StellarSdk.Transaction(r.data.envelope);
+
+        //sign transaction with seed
+        transaction.sign(StellarSdk.Keypair.fromSecret($scope.vaultObj.seed));
+        //submit transaction
+        server.submitTransaction(transaction)
+        //instructions to log response from Stellar
+        .then(function (transactionResult) {
+      console.log(transactionResult);
+        })
+        .catch(function (err) {
+            console.error(err);
+        });
+
         //console.log($scope.vaultObj)
-        $scope.error = "";      
+        $scope.error = "";
       }, function errorCallback(r) {
         $scope.error = r.data.detail;
-        console.log($scope.error);  
+        console.log($scope.error);
       } //end error
     ); //end http
 
-      
+
     function AlbumCtrl() {
       $scope.counter = 10;
       //console.log($scope.counter)
@@ -227,10 +245,10 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
         }// closes if statement
       }// closes onTimeout()
       var mytimeout = $timeout($scope.onTimeout,1000);
-    }// closes AlbumCtrl 
-    
-    $interval($scope.showWallet, 10000, 1, true, user); //wait 10 seconds to refresh page 
-    $interval(AlbumCtrl, 0, 1, true); 
+    }// closes AlbumCtrl
+
+    $interval($scope.showWallet, 10000, 1, true, user); //wait 10 seconds to refresh page
+    $interval(AlbumCtrl, 0, 1, true);
 
   } //end add function
 
@@ -240,5 +258,5 @@ $scope.vaultsExist = false; //turn off vault column in wallet view unless vaults
       //If DIV is hidden it will be visible and vice versa.
       $scope.IsHidden = $scope.IsHidden ? false : true;
   } //end toggle
- 
+
 }); //end viewWallet Controller

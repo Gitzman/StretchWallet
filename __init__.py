@@ -10,10 +10,11 @@ from flask import send_from_directory
 import boto3
 from flask_debugtoolbar import DebugToolbarExtension
 import requests
+import urllib
 
 app = Flask(__name__)
 #app.config.from_object('config')
-app.config.from_pyfile('C:/Users/arout/Documents/stellarVault/stellarVault/config.py')
+app.config.from_pyfile('config.py')
 s3 = boto3.client('s3')
 
 from .models import *
