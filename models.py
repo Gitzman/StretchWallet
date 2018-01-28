@@ -41,18 +41,18 @@ def getBalance(publicKey):
 
 
 def buildVault(data):
-    seed = data['seed']
     tokenName = data['tokenName']
     tokenSymbol = data['tokenSymbol']
     denomination = data['denomination']
     amount = data['storeAmount']
-    assetSymbol = data['asset_codeOrigin'],
+    assetSymbol = data['asset_codeOrigin']
+    publickey = data['publicKey']
     try:
-        assetIssuer =  data['asset_issuerOrigin'],
+        assetIssuer =  data['asset_issuerOrigin']
     except:
         assetIssuer = ''
 
-    xdr = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'createVault')
+    xdr = deal(publickey, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'createVault')
     labLink = "https://www.stellar.org/laboratory/#txsigner?xdr={0}&network=test".format(urllib.quote_plus(xdr))
     #response2, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'issueVault', vault)
     print((xdr), file=sys.stderr)
@@ -86,14 +86,11 @@ def redeemVault(data):
     response2, vault = deal(seed, tokenName, tokenSymbol, assetSymbol, assetIssuer, denomination, amount, 'issueVault', vault)
     return response2
 
-def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, amount, operationCode, vault =1, vaultAddress=''):
+def deal(publickey, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, amount, operationCode, vault =1, vaultAddress=''):
     kp = vault
 
     minamount='2'
-    #Load signer credentials
-    ogkp = Keypair.from_seed(seed)
-    publickey = ogkp.address().decode()
-    seed = ogkp.seed().decode()
+
 
     #Create Vault Account Credentials
     if kp == 1:
@@ -195,21 +192,18 @@ def deal(seed, tokenName, tokenSymbol,assetSymbol, assetIssuer, denomination, am
 
     operationCodes = {'createVault' : {'operations': [issueAccount, trustIssuer, declareVault,
                                                     setAuthority, trustUser, payUser,
-                                                    sellOffer, killVault],
-                                       'signer': ogkp},
-                     'redeemOffer': {'operations':[redeemOffer],
-                                     'signer': ogkp},
-                     'depositOffer': {'operations':[depositOffer],
-                                     'signer':ogkp}}
+                                                    sellOffer, killVault]},
+                     'redeemOffer': {'operations':[redeemOffer]},
+                     'depositOffer': {'operations':[depositOffer]}}
 
-    sourceAccount = operationCodes[operationCode]['signer']
+
     # create a memo
     msg = TextMemo('test')
     # get sequence of new account address
-    sequence = horizon.account(sourceAccount.address()).get('sequence')
+    sequence = horizon.account(publickey).get('sequence')
     # construct the transaction
     tx = Transaction(
-        source=sourceAccount.address().decode(),
+        source=publickey,
         opts={
             'sequence': sequence,
             'memo': msg,

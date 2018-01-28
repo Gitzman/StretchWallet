@@ -205,35 +205,40 @@ var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
       "tokenSymbol": vault.tokenSymbol,
       "storeAmount": vault.storeAmount,
       "denomination": vault.denomination,
-      "seed": vault.seed};
+      "publicKey": user.publickey};
+
+    $scope.seed = vault.seed
+
+
       console.log($scope.vaultObj);
 
-    $http.post('/vaultDeposit', $scope.vaultObj).then(
+    $http.post('/vaultDeposit', $scope.vaultObj, $scope.seed).then(
       function successCallback(r) {
         console.log(r.data)
         // wrap the envelope as a transaction object
-        var transaction = new StellarSdk.Transaction(r.data.envelope);
-
-        //sign transaction with seed
-        transaction.sign(StellarSdk.Keypair.fromSecret($scope.vaultObj.seed));
-        //submit transaction
-        server.submitTransaction(transaction)
-        //instructions to log response from Stellar
-        .then(function (transactionResult) {
-      console.log(transactionResult);
-        })
-        .catch(function (err) {
-            console.error(err);
-        });
-
+        $scope.transaction = new StellarSdk.Transaction(r.data.envelope);
         //console.log($scope.vaultObj)
         $scope.error = "";
       }, function errorCallback(r) {
         $scope.error = r.data.detail;
         console.log($scope.error);
       } //end error
-    ); //end http
+    ) //end http
+    .then( function(handleFunction){
 
+      //sign transaction with seed
+      $scope.transaction.sign(StellarSdk.Keypair.fromSecret(vault.seed));
+      //submit transaction
+      server.submitTransaction($scope.transaction)
+      //instructions to log response from Stellar
+      .then(function (transactionResult) {
+    console.log(transactionResult);
+    $scope.showWallet(user)
+      })
+      .catch(function (err) {
+          console.error(err);
+      });
+    });
 
     function AlbumCtrl() {
       $scope.counter = 10;
@@ -247,8 +252,8 @@ var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
       var mytimeout = $timeout($scope.onTimeout,1000);
     }// closes AlbumCtrl
 
-    $interval($scope.showWallet, 10000, 1, true, user); //wait 10 seconds to refresh page
-    $interval(AlbumCtrl, 0, 1, true);
+    //$interval($scope.showWallet, 10000, 1, true, user); //wait 10 seconds to refresh page
+    //$interval(AlbumCtrl, 0, 1, true);
 
   } //end add function
 
