@@ -4,8 +4,8 @@ html, body {
 
 body {
     background: whitesmoke;
-    font-family: 'Raleway', sans-serif;
-    font-weight: 600;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
 }
 
 #wrapper {
@@ -56,6 +56,22 @@ h1, h2, h3, h4, h5, h6, .btn {
   font-weight: inherit;
 }
 
+th, .table {
+  text-align: center;
+}
+
+.brand-font {
+  font-family: 'Economica', sans-serif;
+  font-weight: 700;
+  font-size:24px;
+}
+.brand-W {
+  font-family: 'Economica', sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size:32px;
+}
+
 #footer > nav.navbar {
   position:fixed;
   bottom:0;
@@ -71,6 +87,10 @@ nav.navbar.navbar-fixed-top {
 
 .navbar {
   background: white;
+}
+
+.navbar-right {
+  padding-top: 5px;
 }
 
 
@@ -149,7 +169,6 @@ button.navbar-toggle {
     width: 130px;
     font-size: 18px;
 }
-
 
 label.long-form {
     width: 600px;
@@ -272,8 +291,20 @@ li .feed {
   border: 2px solid #777 !important;
 }
 
+.border-left-gray {
+  border-left: 1px solid #777;
+}
+
+.border-right-gray {
+  border-right: 1px solid #777;
+}
+
 .text-bold {
-  font-weight: bold;
+  font-weight: 700;
+}
+
+.text400 {
+  font-weight: 400;
 }
 
 .text-italic {
@@ -286,4 +317,12 @@ li .feed {
 
 .fontsize18 {
   font-size: 18px;
+}
+
+.fontsize16 {
+  font-size: 16px;
+}
+
+.shaded {
+  background: aliceblue;
 }
