@@ -1,4 +1,4 @@
-var app = angular.module('app', ['components'])
+var app = angular.module('app', [])
 
 app.controller('viewWallet', function($scope,$http,$interval,$timeout) {
 walletViewer = this;
@@ -219,6 +219,7 @@ var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
         $scope.transaction = new StellarSdk.Transaction(r.data.envelope);
         //console.log($scope.vaultObj)
         $scope.error = "";
+        $scope.transactionInProgress = true;
       }, function errorCallback(r) {
         $scope.error = r.data.detail;
         console.log($scope.error);
@@ -233,35 +234,17 @@ var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
       //instructions to log response from Stellar
       .then(function (transactionResult) {
     console.log(transactionResult);
-    $scope.showWallet(user)
+    $scope.showWallet(user);
+    $scope.transactionInProgress = false;
       })
       .catch(function (err) {
           console.error(err);
       });
     });
 
-    function AlbumCtrl() {
-      $scope.counter = 10;
-      //console.log($scope.counter)
-      $scope.onTimeout = function(){
-        $scope.counter--;
-        if ($scope.counter > 0) {
-          mytimeout = $timeout($scope.onTimeout,1000);
-        }// closes if statement
-      }// closes onTimeout()
-      var mytimeout = $timeout($scope.onTimeout,1000);
-    }// closes AlbumCtrl
-
-    //$interval($scope.showWallet, 10000, 1, true, user); //wait 10 seconds to refresh page
-    //$interval(AlbumCtrl, 0, 1, true);
 
   } //end add function
 
-  //show Vault Details in Wallet
-  $scope.IsHidden = true;
-  $scope.toggle = function() {
-      //If DIV is hidden it will be visible and vice versa.
-      $scope.IsHidden = $scope.IsHidden ? false : true;
-  } //end toggle
+  
 
 }); //end viewWallet Controller

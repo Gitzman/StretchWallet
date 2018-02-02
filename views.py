@@ -8,6 +8,14 @@ def hello():
     return render_template('viewwallet.html')
 
 
+@app.route("/a")
+def a():
+    error = None
+    if 'uuid' in session:
+        return render_template('jobs_page.html')
+    return render_template('viewwallet_delete.html')
+
+
 @app.route("/getaccount", methods = ['GET'])
 def getAccount():
     publicKey = request.args.get('publickey')
@@ -24,9 +32,9 @@ def header():
 @app.route('/footer')
 def footer():
     return render_template('footer.html')
-@app.route('/uploadfiles')
-def uploadfiles():
-    return render_template('uploadfiles.html')
+@app.route('/buildVault')
+def buildVault():
+    return render_template('manageVault_modal.html')
 
 
 

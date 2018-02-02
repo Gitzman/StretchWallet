@@ -1,0 +1,98 @@
+{% raw %}
+<!-- Add Vault Modal -->
+
+
+      		<div class="modal-header">
+        		<div class="modal-title" id="manageVault-title">
+        			<div class="right-float">
+	      				<input type="checkbox" checked data-size="large" data-on="Withdrawal" data-off="Deposit" data-width="140" data-toggle="toggle">
+	      			</div>
+				</div>
+      		</div>
+      		<form name="vaultForm" ng-submit="addVault(vault, walletContents, user)">
+		      	<div class="modal-body">
+		      		<h1 class="text-center">
+		      			<span ng-show="walletContents.vaults.length==0">Build</span>
+		      			<span ng-show="walletContents.vaults.length>0">Manage</span>
+		      			 Vault
+		      			 <small>for asset {{walletContents.asset_code}}</small>
+		      		</h1>
+					<div class="form-group">
+						<label for="tokenNameSelection">Token Name</label>
+						<select class="form-control input-lg" ng-model="vault.tokenSelection" ng-change="getData(vault.tokenSelection)" ng-readonly="vault.tokenName.length>0" name="tokenNameDrop">
+							<option ng-repeat="option in walletContents.vaults" value="{{option.asset_name}}">{{option.asset_name}}</option>
+							<option value="new">Create New</option>
+						</select>
+						<label class="top-padding20" ng-show="vault.tokenSelection=='new'" for="tokenName">NEW Token Name</label><br>
+						<input ng-show="vault.tokenSelection=='new'" class="input-lg" type="text" name="tokenName" ng-model="vault.tokenName">
+					</div>
+					<div class="form-group">
+						<label for="tokenSymbol">Token Symbol</label>
+						<input class="input-lg" type="text" name="tokenSymbol" ng-model="vault.tokenSymbol" ng-readonly="vault.tokenSelection!=='new'" ng-minlength="1" ng-maxlength="12">
+						<div role="alert">
+					      <span class="errorMessage" ng-show="vaultForm.tokenSymbol.$error.minlength">
+					        Too short! Keep going...
+					      </span>
+					      <span class="errorMessage" ng-show="vaultForm.tokenSymbol.$error.maxlength">
+					        Too long! 12 alphanumeric characters is the maximum.
+					      </span>
+					    </div>
+					</div>
+					<div class="form-group">
+						<label for="storeAmount">Store</label>
+						<input class="input-lg" type="number" name="storeAmount" ng-model="vault.storeAmount" ng-max={{walletContents.balance-transaction.transactionFee}}> of available balance is {{vault.storeAmount +(walletContents.balance-transaction.transactionFee)}} ({{walletContents.balance}}-{{transaction.transactionFee}} {{walletContents.asset_code}} transaction fee)
+						<div role="alert">
+					      <span class="errorMessage" ng-show="vaultForm.storeAmount.$error.max">
+					        Not enough {{walletContents.asset_code}}!
+					      </span>
+					    </div>
+					</div>
+					<div class="form-group">
+						<label for="denomination">Exchange</label>
+						<input class="input-lg" type="number" id="denomination" name="denomination" ng-max={{vault.storeAmount}} ng-model="vault.denomination" ng-readonly="vault.tokenSelection!=='new'" ng-pattern="/[0-9]+/"> {{walletContents.asset_code}} for 1 {{vault.tokenSymbol}}
+						<div role="alert">
+					      <span class="errorMessage" ng-show="vaultForm.denomination.$error.pattern">
+					        Whole numbers only!
+					      </span>
+					    </div>
+					</div>
+					<div class="form-group">
+						<h1>
+							Summary
+						</h1>
+						<div>
+							You will create {{(vault.storeAmount/vault.denomination)}} {{vault.tokenSymbol}}
+						</div>
+						<br>
+						<div>
+							You will be charged {{transaction.transactionFee}} {{walletContents.asset_code}}
+						</div>
+						<br>
+						<div>
+							New {{walletContents.asset_code}} balance will be: {{walletContents.balance-vault.storeAmount}}
+						</div>
+					</div>
+					<div class="form-group gray-border" ng-show="vaultForm.tokenName.$valid && vaultForm.tokenSymbol.$valid && vaultForm.storeAmount.$valid&&vaultForm.denomination.$valid">
+						<label class="long-form" for="seed">Enter private key to sign the transaction</label>
+						<input class="input-lg" name="seed" type="text" ng-model="vault.seed" ng-minlength="56" ng-maxlength="56" size=72 ng-disabled="vault.labValidate==1">
+						<div role="alert">
+					      <span class="errorMessage" ng-show="vaultForm.seed.$error.minlength">
+					        Too short! Keep going..
+					      </span>
+					      <span class="errorMessage" ng-show="vaultForm.seed.$error.maxlength">
+					        Too long! Private Keys are 56-digit alphanumeric codes begin with "S".
+					      </span>
+					    </div>
+					    <div class="checkbox">
+  							<label class="long-form"><input type="checkbox" ng-model="vault.labValidate">I'd prefer a link to validate this transaction in the Stellar Laboratory</label>
+						</div>
+					</div>
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary text-uppercase" ng-click="cancel()">Close</button>
+		        <button type="submit" ng-disabled="vaultForm.$invalid" class="btn btn-primary text-uppercase" ng-click="closeModal()">Build Vault</button>
+		      </div>
+	      </form>
+
+
+{% endraw %}

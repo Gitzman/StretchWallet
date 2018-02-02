@@ -150,7 +150,7 @@ button.navbar-toggle {
 }
 
 .modal-body label {
-    width: 130px;
+    width: 160px;
     font-size: 18px;
 }
 
@@ -313,4 +313,10 @@ li .feed {
 
 .shaded {
   background: aliceblue;
+}
+input:-moz-read-only { /* For Firefox */
+    background-color: #eee;
+}
+input:read-only {
+    background-color: #eee;
 }
