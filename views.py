@@ -5,16 +5,7 @@ def hello():
     error = None
     if 'uuid' in session:
         return render_template('jobs_page.html')
-    return render_template('viewwallet.html')
-
-
-@app.route("/a")
-def a():
-    error = None
-    if 'uuid' in session:
-        return render_template('jobs_page.html')
-    return render_template('viewwallet_delete.html')
-
+    return render_template('walletview.html')
 
 @app.route("/getaccount", methods = ['GET'])
 def getAccount():
