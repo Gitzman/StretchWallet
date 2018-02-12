@@ -5,6 +5,13 @@ import json
 
 import sys
 
+@app.route('/federation')
+def federation():
+    stellar_address = request.args.get('q')
+    requesttype = request.args.get('type')
+    response = getFederation(stellar_address, requesttype)
+
+    return jsonify(response)
 
 
 

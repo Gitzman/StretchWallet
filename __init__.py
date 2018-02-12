@@ -11,6 +11,8 @@ import boto3
 from flask_debugtoolbar import DebugToolbarExtension
 import requests
 import urllib
+from flask_cors import cross_origin
+
 
 app = Flask(__name__)
 #app.config.from_object('config')

@@ -35,6 +35,15 @@ class DecimalEncoder(json.JSONEncoder):
 dynamodb = boto3.resource('dynamodb', region_name='us-west-2', endpoint_url="http://localhost:8000")
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx', "odt"])
 
+def getFederation(stellar_address, requesttype):
+    data = {
+      "stellar_address": stellar_address,
+      "account_id": "GCQROFPY6VKJHLQYYFNHDXVDKBNSYNXESCBA7BE3EGNISDY6DT2ORJ2P",
+      "memo_type": "text",
+      "memo": "hello"
+    }
+    return data
+
 def getBalance(publicKey):
     response = query('https://horizon.stellar.org/accounts/{0}'.format(publicKey))
     return response['balances']
