@@ -1,17 +1,14 @@
 var app = angular.module('appApp');	
 
-app.controller('formController', function ($scope, $modalInstance, assets, $http, userData) {
+app.controller('formController', function ($scope, $uibModalInstance, assets, $http, userData) {
 
+	//set data passed through modal
     $scope.walletContents = assets;
-    //console.log($scope.walletContents);
+    console.log($scope.walletContents);
 
-	
-	$scope.transaction = userData.transaction;
-	$scope.transaction = {
-	    "transactionInProgress" : false,
-	    "transactionFailed" : false,
-	    "transactionFee" : 1.5
-	}
+    //set and get data in service
+	userData.setTransaction("transactionFee", 1.5);
+	$scope.transaction = userData.data.transaction;
 
     $scope.cancel= function () {
         // user cancelled, return to parent controller
@@ -22,6 +19,10 @@ app.controller('formController', function ($scope, $modalInstance, assets, $http
        $modalInstance.close();
     }
 
+    //toggle form type
+    $scope.vaultToggle = 'Deposit';
+
+
     //prepopulate fields based on tokenSelection
     $scope.getData = function(option){
     	var myArray = $scope.walletContents.vaults;
@@ -29,14 +30,19 @@ app.controller('formController', function ($scope, $modalInstance, assets, $http
     	if (pos > -1) {
 			$scope.vault = { "tokenSelection" : option, 
 							"tokenSymbol" : $scope.walletContents.vaults[pos].asset_code,
-						 	"denomination" : $scope.walletContents.vaults[pos].price };
+						 	"denomination" : $scope.walletContents.vaults[pos].price,
+						 	"availBalance" : $scope.walletContents.vaults[pos].availBalance 
+						   };
 		}
 		else if (pos == -1) {
 			$scope.vault = { "tokenSelection" : option, 
 							"tokenSymbol" : null,
-						 	"denomination" : null };
+						 	"denomination" : null 
+						   };
 		}
 	}
+
+	//console.log($scope.vault.vaultToggle);
 
   	$scope.validateVault = function(vault) {
 	    $scope.vaultObj = {
@@ -131,7 +137,7 @@ app.controller('formController', function ($scope, $modalInstance, assets, $http
    StellarSdk.Network.useTestNetwork(); //test
    var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');  //test
    
-   $scope.addVault = function(vault, walletContents, user) {
+   $scope.postVault = function(vault, walletContents, user) {
 	   	$scope.vaultObj = { 
 	    	"asset_codeOrigin": walletContents.asset_code,
 	      	"asset_issuerOrigin": walletContents.asset_issuer,

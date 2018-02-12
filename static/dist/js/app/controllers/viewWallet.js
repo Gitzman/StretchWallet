@@ -1,6 +1,6 @@
 var app = angular.module('appApp');
 
-app.controller('viewWallet', function($scope, userData, $http, $modal) {
+app.controller('viewWallet', function($scope, userData, $http, $uibModal) {
 	walletViewer = this;
 
   	$scope.user = userData.user;
@@ -20,10 +20,13 @@ app.controller('viewWallet', function($scope, userData, $http, $modal) {
   	
 
     $scope.showWallet = function(user) { //public key retrieves wallet contents
-    	$scope.balances = []; //reset before requerying
-    	$scope.vaults = []; //reset before requerying
+
+    	//reset data before requerying
+    	$scope.balances = []; 
+    	$scope.vaults = [];
     	userData.setTransaction("transactionInProgress", false);
     	userData.setTransaction("transactionFailed", false);
+    	//end reset data
 
     	//var url = 'https://horizon.stellar.org/accounts/' + user.publickey; //production
     	var url = 'https://horizon-testnet.stellar.org/accounts/' + user.publickey; //test
@@ -131,7 +134,7 @@ app.controller('viewWallet', function($scope, userData, $http, $modal) {
 
 	$scope.openModal = function(assets) {
 	    var assets = assets;
-	    var modalInstance = $modal.open({
+	    var modalInstance = $uibModal.open({
 						  scope: $scope,
 		                  templateUrl: '/buildVault',
 		                  controller: 'formController',

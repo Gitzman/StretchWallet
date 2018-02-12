@@ -1,12 +1,9 @@
-var app = angular.module('appApp', ['ui.bootstrap']);
+var app = angular.module('appApp', ['ngAnimate', 'ngSanitize', 'ui.bootstrap']);
 
 app.factory('userData', function() {
   //public key object
   var data = {
-  	user: {},
-	balances: [],
-	vaults: [],
-  	transaction: {}		
+    transaction: {}		
   }
   return {
   	data, 
