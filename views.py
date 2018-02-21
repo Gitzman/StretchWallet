@@ -8,6 +8,10 @@ def hello():
         return render_template('jobs_page.html')
     return render_template('walletview.html')
 
+@app.route("/buildVault", methods = ['GET'])
+def buildVault():
+    return render_template('manageVault_modal.html')
+
 
 @app.route("/getaccount", methods = ['GET'])
 def getAccount():
