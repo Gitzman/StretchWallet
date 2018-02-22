@@ -1,7 +1,6 @@
 <template>
 <div id="app">
   <NavBar></NavBar>
-  <br>
   <Modal></Modal>
 </div>
 </template>
@@ -17,6 +16,8 @@ export default {
     Modal,
   },
 };
+
+
 </script>
 
 <style>
@@ -25,5 +26,7 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
+  width: 100%;
+  height: 100%
 }
 </style>

@@ -31,5 +31,6 @@ h3 {
 .navbar {
   display: flex;
   background-color: #337ab7;
+  margin-bottom: 5rem;
 }
 </style>

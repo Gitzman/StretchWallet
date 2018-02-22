@@ -1,32 +1,31 @@
 <template>
-<div id='FormInfoWallet'>
-  <div class="row InitialForm">
-    <div class='FlexContainer'>
-      <form class="col s12 row" autocomplete="off">
-        <div class="input-field">
-          <i class="material-icons prefix">vpn_key</i>
-          <input id="icon_prefix" v-model="updatedKey" name="textfield" value="" type="text" class="validate">
-          <label for="icon_prefix">Public Key, Starts with G</label>
-        </div>
-        <a class="btn-large waves-effect light-blue darken-3" @click='getWalletInfo()'>
+<div class='forminfo'>
+  <div id='FormInfoWallet'>
+    <div class="row InitialForm">
+      <div class='FlexContainer'>
+        <form class="col s12 row" autocomplete="off">
+          <div class="input-field">
+            <i class="material-icons prefix">vpn_key</i>
+            <input id="icon_prefix" v-model="updatedKey" name="textfield" value="" type="text" class="validate">
+            <label for="icon_prefix">Public Key, Starts with G</label>
+          </div>
+          <a class="btn-large waves-effect light-blue darken-3" @click='vaultExist = true'>
           <i class="material-icons right">send</i>
           Send
         </a>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
   <!-- <Error :message="'PublicStartsWithG'" :valid='startsWithG'></Error> -->
-  <br>
-  <div v-if='vaultExist'>
-    <hr>
-    <VaultContents :balanceinfo="balanceInfo"></VaultContents>
+  <div v-if='vaultExist' class='vaultinfo'>
+    <VaultContents />
   </div>
 </div>
 </template>
 
 
 <script>
-import axios from 'axios'
 import VaultContents from './VaultContents';
 import Error from './Error';
 
@@ -65,26 +64,15 @@ export default {
     },
   },
   methods: {
-    getWalletInfo: function(){
-      const pk = this.pk
-      const address = `https://horizon-testnet.stellar.org/accounts/${pk}`
-      console.log(address)
-      axios.get(address)
-      .then(data => {
-        this.balanceInfo = data.data.balances
-        this.vaultExist = true
-      })
-      .catch(err => console.log(err))
-    }
   }
 };
 </script>
 
 <style>
 .row {
-  margin: 1rem;
-  margin-bottom: 0px;
-  /* display: flex; */
+  margin: 2rem;
+  margin-bottom: 1rem;
+  max-height: 50rem;
 }
 
 form {
@@ -92,6 +80,16 @@ form {
   flex: 10;
 }
 
+.forminfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.vaultinfo {
+  max-height: 100%;
+  /* overflow-y: scroll; */
+}
 
 .input-field {
   margin: auto;
