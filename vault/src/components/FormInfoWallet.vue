@@ -6,7 +6,11 @@
         <form class="col s12 row" autocomplete="off">
           <div class="input-field">
             <i class="material-icons prefix">vpn_key</i>
-            <input id="icon_prefix" v-model="updatedKey" name="textfield" value="" type="text" class="validate">
+            <input id="icon_prefix"
+            v-model="updatedKey"
+            name="textfield" value=""
+            type="text"
+            class="validate">
             <label for="icon_prefix">Public Key, Starts with G</label>
           </div>
           <a class="btn-large waves-effect light-blue darken-3" @click='vaultExist = true'>
@@ -36,7 +40,6 @@ export default {
       pk: this.$store.state.publicKey,
       vaultExist: false,
       error: [],
-      balanceInfo: []
     };
   },
   components: {
@@ -45,26 +48,26 @@ export default {
   },
   computed: {
     updatedKey: {
-      get: function() {
+      get() {
         return this.$store.state.publicKey;
       },
-      set: function(value) {
+      set(value) {
         this.$store.commit('updatePK', value);
         this.pk = value;
       },
     },
-    startsWithG: function() {
+    startsWithG() {
       return this.pk[0] === 'G';
     },
-    isMinLength: function() {
+    isMinLength() {
       return this.pk.length < 56;
     },
-    isMaxLength: function() {
+    isMaxLength() {
       return this.pk.length > 56;
     },
   },
   methods: {
-  }
+  },
 };
 </script>
 

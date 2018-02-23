@@ -21,7 +21,7 @@
           </tr>
         </tbody>
       </table> -->
-      <ul class="collapsible" data-collapsible="accordion">
+      <ul v-collapsible class="collapsible" data-collapsible="accordion">
         <li>
           <div class="collapsible-header"><i class="material-icons">filter_drama</i>First</div>
           <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
@@ -51,8 +51,9 @@
 </template>
 
 <script>
-import jquery from 'jquery'
 import axios from 'axios';
+import jquery from 'jquery';
+// import material from 'materialize-css';
 
 export default {
   name: 'VaultContents',
@@ -60,44 +61,51 @@ export default {
     return {
       balanceInfo: {},
       vaultExist: null,
-      wrongPK: null
+      wrongPK: null,
     };
   },
   computed: {
-
   },
-  methods: {
-    getWalletInfo: function() {
-      const pk = this.$store.state.publicKey
-      const address = `https://horizon-testnet.stellar.org/accounts/${pk}`
-      console.log(address)
-      axios.get(address)
-        .then(data => {
-          this.balanceInfo = data.data.balances;
-          console.log(data.status);
-          if (data.data.data != {}) {
-            this.vaultExist = 1
-          } else {
-            this.vaultExist = 0
-          }
-        })
-        .catch(err => {
-          console.log(err);
-          this.wrongPK = true
-        })
+  directives: {
+    collapsible: function(el) {
+      window.$(el).collapsible();
     }
   },
-  mounted: function() {
-    this.getWalletInfo()
+  methods: {
+    getWalletInfo() {
+      const pk = this.$store.state.publicKey;
+      const address = `https://horizon-testnet.stellar.org/accounts/${pk}`;
+      console.log(address);
+      axios.get(address)
+        .then((data) => {
+          this.balanceInfo = data.data.balances;
+          // console.log(data.status);
+          if (data.data.data !== {}) {
+            this.vaultExist = 1;
+          } else {
+            this.vaultExist = 0;
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          this.wrongPK = true;
+        });
+    },
+    activateCollapse() {
+
+    }
+  },
+  mounted() {
+    this.getWalletInfo();
+    this.$nextTick(function(){
+      this.activateCollapse();
+    })
   },
   props: [
-    'balanceinfo'
+    'balanceinfo',
   ],
-  inserted: function() {
-    // Focus the element
-    $('.collapsible').collapsible();
-  }
 };
+
 </script>
 
 <style>
