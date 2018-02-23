@@ -2,37 +2,32 @@
 <transition name="fade">
   <div id='VaultContents'>
     <div v-if='vaultExist === 1'>
-      <h3 class="vaultTitle">Vault Contents</h3>
-      <!-- <table class='VaultTableComponent highlight centered'>
-        <thead>
-          <tr>
-            <th>Asset Type</th>
-            <th>Amount</th>
-            <th style='text-align:right'>Operations</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for='asset in balanceInfo'>
-            <td v-if='asset.asset_code'>{{asset.asset_code}}</td>
-            <td v-else>Lumens</td>
-            <td>{{asset.balance}}</td>
-            <td><i class='material-icons'>add</i></td>
-            <td><i class='material-icons'>remove</i></td>
-          </tr>
-        </tbody>
-      </table> -->
+      <h5 class="vaultTitle">Vault Contents</h5>
       <ul v-collapsible class="collapsible" data-collapsible="accordion">
-        <li>
-          <div class="collapsible-header"><i class="material-icons">filter_drama</i>First</div>
-          <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
-        </li>
-        <li>
-          <div class="collapsible-header"><i class="material-icons">place</i>Second</div>
-          <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
-        </li>
-        <li>
-          <div class="collapsible-header"><i class="material-icons">whatshot</i>Third</div>
-          <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
+        <li v-for='asset in balanceInfo'>
+          <div class="collapsible-header"><i class="material-icons">filter_drama</i>{{asset.asset_code}} - {{asset.asset_issuer}}</div>
+          <div class="collapsible-body">
+            <span class='issuer_title'>Issuer:</span>
+            <span>{{asset.asset_issuer}}</span>
+            <table class='VaultTableComponent highlight centered'>
+              <thead>
+                <tr>
+                  <th>Balance</th>
+                  <th>Limit</th>
+                  <th>Asset Type</th>
+                  <th>Asset Code</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{asset.balance}}</td>
+                  <td>{{asset.limit}}</td>
+                  <td>{{asset.asset_type}}</td>
+                  <td>{{asset.asset_code}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </li>
       </ul>
     </div>
@@ -53,7 +48,7 @@
 <script>
 import axios from 'axios';
 import jquery from 'jquery';
-// import material from 'materialize-css';
+import material from 'materialize-css';
 
 export default {
   name: 'VaultContents',
@@ -67,9 +62,9 @@ export default {
   computed: {
   },
   directives: {
-    collapsible: function(el) {
-      window.$(el).collapsible();
-    }
+    collapsible(el) {
+      jquery(el).collapsible();
+    },
   },
   methods: {
     getWalletInfo() {
@@ -91,15 +86,9 @@ export default {
           this.wrongPK = true;
         });
     },
-    activateCollapse() {
-
-    }
   },
   mounted() {
     this.getWalletInfo();
-    this.$nextTick(function(){
-      this.activateCollapse();
-    })
   },
   props: [
     'balanceinfo',
