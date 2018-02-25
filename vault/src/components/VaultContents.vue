@@ -62,6 +62,74 @@
 import axios from 'axios';
 import jquery from 'jquery';
 import material from 'materialize-css';
+import StellarSdk from 'stellar-sdk';
+
+var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+var kp = StellarSdk.Keypair;
+const accountId = ''; //account.publicKey()
+var accountPK = new StellarSdk.Account(accountId, "0");
+var operation = StellarSdk.Operation;
+
+window.startDemo = function startDemo() {
+  // create personal random kp
+  personalKP = kp.random();
+
+}
+
+// vaultAccount is by default started at null, after creating a random KP
+// account with createRandomAccount() this var is set to an actual value
+var vaultAccount = null
+
+window.getinfo = function getinfo () {
+  server.transactions()
+    .forAccount(accountId)
+    .call()
+    .then(function (page) {
+        console.log('Page 1: ');
+        console.log(page.records);
+        return page.next();
+    })
+    .then(function (page) {
+        console.log('Page 2: ');
+        console.log(page.records);
+    })
+    .catch(function (err) {
+        console.log(err);
+    });
+}
+
+window.createRandomAccount = function createRandomAccount () {
+// creating KP, this do not create the actual account, only its keys
+  const vaultPK = kp.random();
+  console.log("vaultPK:" , vaultPK );
+  const ops1 = {
+    "destination": vaultPK.publicKey(),
+    "startingBalance": "2",
+    "source": accountId
+  };
+  //Type:  xdr.CreateAccountOp
+  const createOperation = operation.createAccount(ops1);
+  console.log("CreateAccountOp:", createOperation);
+
+  // add my personal accountid ad signer and set options
+  const ops2 = {
+    'source': vaultPK.publicKey(),
+    'master_weight' : 2,
+    'signer_type':'ed25519PublicKey',
+    'signer_address' : accountId,
+    'signer_weight' : 2,
+    'high_threshold' : 5,
+    'med_threshold':3
+  }
+  const setOptionOperation = operation.setOptions(ops2)
+
+  // add vault data to my accound data
+  const ops3 = {
+    "name": "vaultaccount",
+    "value": vaultPK.publicKey()
+  }
+  const addDataOperation = operation.manageData(ops3)
+}
 
 export default {
   name: 'VaultContents',
@@ -86,29 +154,20 @@ export default {
       console.log(address);
       axios.get(address)
         .then((data) => {
-
           this.balanceInfo = this.processContent(data.data.balances);
-
           if (data.data.data !== {}) {
-
             this.vaultExist = 1;
-
           } else {
-
             this.vaultExist = 0;
-
           }
-
         })
-
         .catch((err) => {
           console.log(err);
           this.wrongPK = true;
         });
     },
     processContent(content) {
-      console.log(content)
-      return content
+      // window.getinfo(content);
     },
   },
   mounted() {
