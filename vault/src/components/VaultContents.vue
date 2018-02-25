@@ -5,7 +5,18 @@
       <h5 class="vaultTitle">Vault Contents</h5>
       <ul v-collapsible class="collapsible" data-collapsible="accordion">
         <li v-for='asset in balanceInfo'>
-          <div class="collapsible-header"><i class="material-icons">filter_drama</i>{{asset.asset_code}} - {{asset.asset_issuer}}</div>
+          <div class="collapsible-header" v-if='asset.asset_code'>
+            <i class="material-icons">
+              filter_drama
+            </i>
+            {{asset.asset_code}}
+          </div>
+          <div class="collapsible-header" v-else>
+            <i class="material-icons">
+              star
+            </i>
+            Lumens
+          </div>
           <div class="collapsible-body">
             <span class='issuer_title'>Issuer:</span>
             <span>{{asset.asset_issuer}}</span>
@@ -23,7 +34,9 @@
                   <td>{{asset.balance}}</td>
                   <td>{{asset.limit}}</td>
                   <td>{{asset.asset_type}}</td>
-                  <td>{{asset.asset_code}}</td>
+                  <td>{{asset.asset_type}}</td>
+                  <td v-if='asset.asset_code' >{{asset.asset_code}}</td>
+                  <td v-else>Lumens</td>
                 </tr>
               </tbody>
             </table>
@@ -73,18 +86,29 @@ export default {
       console.log(address);
       axios.get(address)
         .then((data) => {
-          this.balanceInfo = data.data.balances;
-          // console.log(data.status);
+
+          this.balanceInfo = this.processContent(data.data.balances);
+
           if (data.data.data !== {}) {
+
             this.vaultExist = 1;
+
           } else {
+
             this.vaultExist = 0;
+
           }
+
         })
+
         .catch((err) => {
           console.log(err);
           this.wrongPK = true;
         });
+    },
+    processContent(content) {
+      console.log(content)
+      return content
     },
   },
   mounted() {
@@ -94,6 +118,7 @@ export default {
     'balanceinfo',
   ],
 };
+
 
 </script>
 
