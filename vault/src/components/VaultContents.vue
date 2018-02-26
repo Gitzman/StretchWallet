@@ -8,14 +8,12 @@
           <div class="collapsible-header" v-if='asset.asset_code'>
             <i class="material-icons">
               filter_drama
-            </i>
-            {{asset.asset_code}}
+            </i> {{asset.asset_code}}
           </div>
           <div class="collapsible-header" v-else>
             <i class="material-icons">
               star
-            </i>
-            Lumens
+            </i> Lumens
           </div>
           <div class="collapsible-body">
             <span class='issuer_title'>Issuer:</span>
@@ -35,7 +33,7 @@
                   <td>{{asset.limit}}</td>
                   <td>{{asset.asset_type}}</td>
                   <td>{{asset.asset_type}}</td>
-                  <td v-if='asset.asset_code' >{{asset.asset_code}}</td>
+                  <td v-if='asset.asset_code'>{{asset.asset_code}}</td>
                   <td v-else>Lumens</td>
                 </tr>
               </tbody>
@@ -66,13 +64,26 @@ import StellarSdk from 'stellar-sdk';
 
 var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
 var kp = StellarSdk.Keypair;
-const accountId = ''; //account.publicKey()
-var accountPK = new StellarSdk.Account(accountId, "0");
-var operation = StellarSdk.Operation;
 
-window.startDemo = function startDemo() {
+const accountId = ''; //include public key here for dev
+var personalAccount = null
+var operation = StellarSdk.Operation;
+var network = StellarSdk.Network.useTestNetwork("TESTNET");
+// network.useTestNetwork()
+
+
+window.startDemo = function startDemo(accountdemo) {
   // create personal random kp
-  personalKP = kp.random();
+  // make request to network to get the actual sequence sequenceNumber
+  console.log(accountdemo)
+  const address = `https://horizon-testnet.stellar.org/accounts/${accountdemo}`;
+  axios.get(address)
+  .then((data) => {
+    personalAccount = new StellarSdk.Account(accountdemo, data.data.sequence);
+    console.log("personalAccount: (should not be null)", personalAccount)
+  })
+  .catch((err) => {console.log(err)})
+  // create account with sequence number new StellarSdk.Account(accountId, "0");
 
 }
 
@@ -80,28 +91,28 @@ window.startDemo = function startDemo() {
 // account with createRandomAccount() this var is set to an actual value
 var vaultAccount = null
 
-window.getinfo = function getinfo () {
+window.getinfo = function getinfo() {
   server.transactions()
     .forAccount(accountId)
     .call()
-    .then(function (page) {
-        console.log('Page 1: ');
-        console.log(page.records);
-        return page.next();
+    .then(function(page) {
+      console.log('Page 1: ');
+      console.log(page.records);
+      return page.next();
     })
-    .then(function (page) {
-        console.log('Page 2: ');
-        console.log(page.records);
+    .then(function(page) {
+      console.log('Page 2: ');
+      console.log(page.records);
     })
-    .catch(function (err) {
-        console.log(err);
+    .catch(function(err) {
+      console.log(err);
     });
 }
 
-window.createRandomAccount = function createRandomAccount () {
-// creating KP, this do not create the actual account, only its keys
+window.createVaultAccount = function createVaultAccount() {
+  // creating KP, this do not create the actual account, only its keys
   const vaultPK = kp.random();
-  console.log("vaultPK:" , vaultPK );
+  console.log("vaultPK:", vaultPK);
   const ops1 = {
     "destination": vaultPK.publicKey(),
     "startingBalance": "2",
@@ -114,21 +125,45 @@ window.createRandomAccount = function createRandomAccount () {
   // add my personal accountid ad signer and set options
   const ops2 = {
     'source': vaultPK.publicKey(),
-    'master_weight' : 2,
-    'signer_type':'ed25519PublicKey',
-    'signer_address' : accountId,
-    'signer_weight' : 2,
-    'high_threshold' : 5,
-    'med_threshold':3
+    'master_weight': 2,
+    'signer_type': 'ed25519PublicKey',
+    'signer_address': accountId,
+    'signer_weight': 2,
+    'high_threshold': 5,
+    'med_threshold': 3
   }
-  const setOptionOperation = operation.setOptions(ops2)
+  const setOptionOperation = operation.setOptions(ops2);
 
   // add vault data to my accound data
   const ops3 = {
     "name": "vaultaccount",
     "value": vaultPK.publicKey()
   }
-  const addDataOperation = operation.manageData(ops3)
+  const addDataOperation = operation.manageData(ops3);
+
+  const operations = [createOperation, setOptionOperation, addDataOperation];
+  // get sequence of my account
+  const sequence = personalAccount.sequenceNumber();
+   // create a memo
+  const msg = new StellarSdk.Memo("text", "Creating Vault");
+
+  var transaction = new StellarSdk.TransactionBuilder(personalAccount)
+  .addOperation(createOperation)
+  .addOperation(setOptionOperation)
+  .addOperation(addDataOperation)
+  .addMemo(msg)
+  .build()
+
+// include private key here for dev
+  var personalkeypair = kp.fromSecret("")
+
+  transaction.sign(personalkeypair);
+  transaction.sign(vaultPK);
+
+  server.submitTransaction(transaction)
+  .then(data => console.log("aloha", data))
+  .catch(err => console.log(err))
+
 }
 
 export default {
@@ -140,8 +175,7 @@ export default {
       wrongPK: null,
     };
   },
-  computed: {
-  },
+  computed: {},
   directives: {
     collapsible(el) {
       jquery(el).collapsible();
@@ -154,7 +188,7 @@ export default {
       console.log(address);
       axios.get(address)
         .then((data) => {
-          this.balanceInfo = this.processContent(data.data.balances);
+          this.balanceInfo = data.data.balances;
           if (data.data.data !== {}) {
             this.vaultExist = 1;
           } else {
@@ -166,9 +200,10 @@ export default {
           this.wrongPK = true;
         });
     },
-    processContent(content) {
-      // window.getinfo(content);
-    },
+    // processContent(content) {
+    //   console.log
+    //   // window.getinfo(content);
+    // },
   },
   mounted() {
     this.getWalletInfo();
@@ -177,8 +212,6 @@ export default {
     'balanceinfo',
   ],
 };
-
-
 </script>
 
 <style>
