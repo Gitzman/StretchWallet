@@ -62,34 +62,35 @@ import jquery from 'jquery';
 import material from 'materialize-css';
 import StellarSdk from 'stellar-sdk';
 
-var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
-var kp = StellarSdk.Keypair;
+const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+const kp = StellarSdk.Keypair;
 
 const accountId = ''; //include public key here for dev
-var personalAccount = null
-var operation = StellarSdk.Operation;
-var network = StellarSdk.Network.useTestNetwork("TESTNET");
-// network.useTestNetwork()
+const personalkeypair = kp.fromSecret('');// include private key here for dev
+let personalAccount = null;
+const operation = StellarSdk.Operation;
+const network = StellarSdk.Network.useTestNetwork('TESTNET');
+
 
 
 window.startDemo = function startDemo(accountdemo) {
   // create personal random kp
   // make request to network to get the actual sequence sequenceNumber
-  console.log(accountdemo)
   const address = `https://horizon-testnet.stellar.org/accounts/${accountdemo}`;
   axios.get(address)
   .then((data) => {
     personalAccount = new StellarSdk.Account(accountdemo, data.data.sequence);
-    console.log("personalAccount: (should not be null)", personalAccount)
   })
-  .catch((err) => {console.log(err)})
+  .catch((err) => {
+    console.log(err);
+  })
   // create account with sequence number new StellarSdk.Account(accountId, "0");
 
 }
 
 // vaultAccount is by default started at null, after creating a random KP
 // account with createRandomAccount() this var is set to an actual value
-var vaultAccount = null
+var vaultAccount = null;
 
 window.getinfo = function getinfo() {
   server.transactions()
@@ -112,59 +113,56 @@ window.getinfo = function getinfo() {
 window.createVaultAccount = function createVaultAccount() {
   // creating KP, this do not create the actual account, only its keys
   const vaultPK = kp.random();
-  console.log("vaultPK:", vaultPK);
   const ops1 = {
-    "destination": vaultPK.publicKey(),
-    "startingBalance": "2",
-    "source": accountId
+    destination: vaultPK.publicKey(),
+    startingBalance: '2',
+    source: accountId,
   };
-  //Type:  xdr.CreateAccountOp
+
+  //Returns Type:  xdr.CreateAccountOp
   const createOperation = operation.createAccount(ops1);
-  console.log("CreateAccountOp:", createOperation);
 
   // add my personal accountid ad signer and set options
   const ops2 = {
-    'source': vaultPK.publicKey(),
-    'master_weight': 2,
-    'signer_type': 'ed25519PublicKey',
-    'signer_address': accountId,
-    'signer_weight': 2,
-    'high_threshold': 5,
-    'med_threshold': 3
-  }
+    source: vaultPK.publicKey(),
+    master_weight: 2,
+    signer_type: 'ed25519PublicKey',
+    signer_address: accountId,
+    signer_weight: 2,
+    high_threshold: 5,
+    med_threshold: 3,
+  };
   const setOptionOperation = operation.setOptions(ops2);
 
   // add vault data to my accound data
   const ops3 = {
-    "name": "vaultaccount",
-    "value": vaultPK.publicKey()
-  }
+    name: 'vaultaccount',
+    value: vaultPK.publicKey(),
+  };
   const addDataOperation = operation.manageData(ops3);
 
   const operations = [createOperation, setOptionOperation, addDataOperation];
-  // get sequence of my account
-  const sequence = personalAccount.sequenceNumber();
-   // create a memo
-  const msg = new StellarSdk.Memo("text", "Creating Vault");
 
-  var transaction = new StellarSdk.TransactionBuilder(personalAccount)
-  .addOperation(createOperation)
-  .addOperation(setOptionOperation)
-  .addOperation(addDataOperation)
-  .addMemo(msg)
-  .build()
+  // create a memo
+  const msg = new StellarSdk.Memo('text', 'Creating Vault');
 
-// include private key here for dev
-  var personalkeypair = kp.fromSecret("")
+  // create final transaxction with 3 operations and a memo
+  const transaction = new StellarSdk.TransactionBuilder(personalAccount)
+    .addOperation(createOperation)
+    .addOperation(setOptionOperation)
+    .addOperation(addDataOperation)
+    .addMemo(msg)
+    .build();
 
+
+  // sign transactions with both personal and vault keypairs
   transaction.sign(personalkeypair);
   transaction.sign(vaultPK);
 
   server.submitTransaction(transaction)
-  .then(data => console.log("aloha", data))
-  .catch(err => console.log(err))
-
-}
+    .then(data => console.log(data))
+    .catch(err => console.log(err));
+};
 
 export default {
   name: 'VaultContents',
