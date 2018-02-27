@@ -45,15 +45,58 @@
     </div>
     <transition name="fade">
       <div v-if='vaultExist === 0' class='errorResponse'>
-        <h3>No Associated Vault</h3>
-        <a class="btn-large waves-effect light-blue darken-3" @click='createVault()'>
-        <i class="material-icons right">add</i>
-        Create Vault
-      </a>
+        <div class='beforeCreation' v-if='!startVaultCreation'>
+          <h3>No Associated Vault</h3>
+          <a class="btn-large waves-effect light-blue darken-3" @click='createVault()'>
+        <i class="material-icons right">
+          add
+        </i>
+        Create vault to public key
+        </a>
+        </div>
+        <div v-else>
+          <div class="preloader-wrapper big active" v-if="xdrEnvelope===''">
+            <div class="spinner-layer spinner-blue-only">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div>
+              <div class="gap-patch">
+                <div class="circle"></div>
+              </div>
+              <div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+          </div>
+          <div v-else>
+            <h5>Vault Public Key:</h5>
+            <div class='keycontainer'>
+              <h5 class='vaultkey'>{{vaultPublicKey}}</h5>
+              <i class="material-icons right">content_copy</i>
+            </div>
+            <br>
+            <h5>Vault Secret:</h5>
+            <div class='keycontainer'>
+              <h5 class='vaultkey'>{{vaultPrivateKey}}</h5>
+              <i class="material-icons right">content_copy</i>
+            </div>
+            <br>
+            <br>
+            <div class="row">
+              <form class="col s12">
+                <div class="row">
+                  <div class="input-field col m3">
+                    <textarea id="textarea1" class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+                    <label for="textarea1">Transaction To sign</label>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </transition>
     <transition name="fade">
-
       <div v-if='wrongPK === true' class='errorResponse'>
         <h4>No account associated to this public key</h4>
       </div>
@@ -67,14 +110,14 @@ import axios from 'axios';
 import jquery from 'jquery';
 import material from 'materialize-css';
 import StellarSdk from 'stellar-sdk';
+StellarSdk.Network.useTestNetwork();
 
 const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
-const network = StellarSdk.Network.useTestNetwork('TESTNET');
 const operation = StellarSdk.Operation;
 const kp = StellarSdk.Keypair;
 
 const accountId = ''; //include public key here for dev
-const personalkeypair = kp.fromSecret(''); // include private key here for dev
+// const personalkeypair = kp.fromSecret(''); // include private key here for dev
 
 // vaultAccount is by default started at null, after creating a random KP
 // account with createVaultAccount() this var is set to an actual value
@@ -113,58 +156,6 @@ window.getinfo = function getinfo() {
     });
 };
 
-window.createVaultAccount = function createVaultAccount() {
-  // creating KP, this do not create the actual account, only its keys
-  const vaultPK = kp.random();
-  const ops1 = {
-    destination: vaultPK.publicKey(),
-    startingBalance: '2',
-    source: accountId,
-  };
-
-  // Returns Type:  xdr.CreateAccountOp
-  const createOperation = operation.createAccount(ops1);
-
-  // add my personal accountid ad signer and set options
-  const ops2 = {
-    source: vaultPK.publicKey(),
-    master_weight: 2,
-    signer_type: 'ed25519PublicKey',
-    signer_address: accountId,
-    signer_weight: 2,
-    high_threshold: 5,
-    med_threshold: 3,
-  };
-  const setOptionOperation = operation.setOptions(ops2);
-
-  // add vault data to my accound data
-  const ops3 = {
-    name: 'vaultaccount',
-    value: vaultPK.publicKey(),
-  };
-  const addDataOperation = operation.manageData(ops3);
-
-  // create a memo
-  const msg = new StellarSdk.Memo('text', 'Creating Vault');
-
-  // create final transaxction with 3 operations and a memo
-  const transaction = new StellarSdk.TransactionBuilder(personalAccount)
-    .addOperation(createOperation)
-    .addOperation(setOptionOperation)
-    .addOperation(addDataOperation)
-    .addMemo(msg)
-    .build();
-
-
-  // sign transactions with both personal and vault keypairs
-  transaction.sign(personalkeypair);
-  transaction.sign(vaultPK);
-
-  server.submitTransaction(transaction)
-    .then(data => console.log(data))
-    .catch(err => console.log(err));
-};
-
 export default {
   name: 'VaultContents',
   data() {
@@ -172,7 +163,11 @@ export default {
       balanceInfo: {},
       vaultExist: null,
       wrongPK: null,
-      privateKey: ''
+      privateKey: '',
+      xdrEnvelope: '',
+      startVaultCreation: false,
+      vaultPublicKey: '',
+      vaultPrivateKey: '',
     };
   },
   computed: {},
@@ -205,6 +200,8 @@ export default {
     createVault() {
       // vaultAccount is by default started at null, after creating a random KP
       // account with createVaultAccount() this var is set to an actual value
+      this.startVaultCreation = true
+
       let vaultAccount = null;
       let personalAccount = null;
       const address = `https://horizon-testnet.stellar.org/accounts/${this.$store.state.publicKey}`;
@@ -213,9 +210,9 @@ export default {
           personalAccount = new StellarSdk.Account(this.$store.state.publicKey, data.data.sequence);
 
           // creating KP, this do not create the actual account, only its keys
-          const vaultPK = kp.random();
+          const vaultKP = kp.random();
           const ops1 = {
-            destination: vaultPK.publicKey(),
+            destination: vaultKP.publicKey(),
             startingBalance: '2',
             source: this.$store.state.publicKey,
           };
@@ -225,7 +222,7 @@ export default {
 
           // add my personal accountid ad signer and set options
           const ops2 = {
-            source: vaultPK.publicKey(),
+            source: vaultKP.publicKey(),
             master_weight: 2,
             signer_type: 'ed25519PublicKey',
             signer_address: this.$store.state.publicKey,
@@ -238,7 +235,7 @@ export default {
           // add vault data to my accound data
           const ops3 = {
             name: 'vaultaccount',
-            value: vaultPK.publicKey(),
+            value: vaultKP.publicKey(),
           };
           const addDataOperation = operation.manageData(ops3);
 
@@ -254,19 +251,19 @@ export default {
             .addMemo(msg)
             .build();
 
-          // sign transactions with both personal and vault keypairs
+          // sign transactions with both personal and vault public key
+          transaction.sign(vaultKP);
 
-          transaction.sign(kp.fromPublicKey(this.$store.state.publicKey));
-          transaction.sign(vaultPK);
-
-          server.submitTransaction(transaction)
-            .then(data => console.log(data))
-            .catch(err => console.log(err));
+          // create transaction to be signed in the stellar laboratory
+          this.xdrEnvelope = transaction.toEnvelope().toXDR().toString("base64");
+          this.vaultPublicKey = vaultKP.publicKey();
+          this.vaultPrivateKey = vaultKP.secret();
 
         })
         .catch((err) => {
           console.log(err);
         });
+
     }
   },
   mounted() {
@@ -321,7 +318,20 @@ tbody {
 
 .errorResponse {
   /* background: white; */
-  width:40%;
-  margin:auto;
+  width: 60%;
+  margin: auto;
 }
+
+.vaultkey {
+  overflow-x: scroll;
+}
+
+.keycontainer {
+  display: flex;
+}
+
+#textarea1 {
+  min-height: 460px;
+}
+
 </style>

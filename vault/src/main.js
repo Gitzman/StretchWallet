@@ -12,7 +12,7 @@ Vue.config.productionTip = false;
 const store = new VueX.Store({
   state: {
     count: 0,
-    publicKey: 'GCQROFPY6VKJHLQYYFNHDXVDKBNSYNXESCBA7BE3EGNISDY6DT2ORJ2P',
+    publicKey: 'GBFSKT4OBPRDIUIXKPFJ2QJQFZ645537ATO53GYC7PFO4FU7FOLXOBAG',
   },
   mutations: {
     updatePK(state, message) {
