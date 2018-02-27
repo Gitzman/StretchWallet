@@ -3,7 +3,8 @@
   <div id='VaultContents'>
     <div v-if='vaultExist === 1'>
       <h5 class="vaultTitle">Vault Contents</h5>
-      <ul v-collapsible class="collapsible" data-collapsible="accordion">
+      <br>
+      <ul v-collapsible class="collapsible" data-collapsible="expandable">
         <li v-for='asset in balanceInfo'>
           <div class="collapsible-header" v-if='asset.asset_code'>
             <i class="material-icons">
@@ -42,16 +43,21 @@
         </li>
       </ul>
     </div>
-    <div v-if='vaultExist === 0' class='errorResponse'>
-      <h3>No Associated Vault</h3>
-      <a class="btn-large waves-effect light-blue darken-3" @click='vaultExist = true'>
-        <!-- <i class="material-icons right">add</i> -->
+    <transition name="fade">
+      <div v-if='vaultExist === 0' class='errorResponse'>
+        <h3>No Associated Vault</h3>
+        <a class="btn-large waves-effect light-blue darken-3" @click='createVault()'>
+        <i class="material-icons right">add</i>
         Create Vault
       </a>
-    </div>
-    <div v-if='wrongPK === true' class='errorResponse'>
-      <h4>No account associated to this public key</h4>
-    </div>
+      </div>
+    </transition>
+    <transition name="fade">
+
+      <div v-if='wrongPK === true' class='errorResponse'>
+        <h4>No account associated to this public key</h4>
+      </div>
+    </transition>
   </div>
 </transition>
 </template>
@@ -63,52 +69,49 @@ import material from 'materialize-css';
 import StellarSdk from 'stellar-sdk';
 
 const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+const network = StellarSdk.Network.useTestNetwork('TESTNET');
+const operation = StellarSdk.Operation;
 const kp = StellarSdk.Keypair;
 
 const accountId = ''; //include public key here for dev
-const personalkeypair = kp.fromSecret('');// include private key here for dev
+const personalkeypair = kp.fromSecret(''); // include private key here for dev
+
+// vaultAccount is by default started at null, after creating a random KP
+// account with createVaultAccount() this var is set to an actual value
+let vaultAccount = null;
 let personalAccount = null;
-const operation = StellarSdk.Operation;
-const network = StellarSdk.Network.useTestNetwork('TESTNET');
-
-
 
 window.startDemo = function startDemo(accountdemo) {
   // create personal random kp
   // make request to network to get the actual sequence sequenceNumber
   const address = `https://horizon-testnet.stellar.org/accounts/${accountdemo}`;
   axios.get(address)
-  .then((data) => {
-    personalAccount = new StellarSdk.Account(accountdemo, data.data.sequence);
-  })
-  .catch((err) => {
-    console.log(err);
-  })
+    .then((data) => {
+      personalAccount = new StellarSdk.Account(accountdemo, data.data.sequence);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   // create account with sequence number new StellarSdk.Account(accountId, "0");
-
-}
-
-// vaultAccount is by default started at null, after creating a random KP
-// account with createRandomAccount() this var is set to an actual value
-var vaultAccount = null;
+};
 
 window.getinfo = function getinfo() {
   server.transactions()
     .forAccount(accountId)
     .call()
-    .then(function(page) {
+    .then((page) => {
       console.log('Page 1: ');
       console.log(page.records);
       return page.next();
     })
-    .then(function(page) {
+    .then((page) => {
       console.log('Page 2: ');
       console.log(page.records);
     })
-    .catch(function(err) {
+    .catch((err) => {
       console.log(err);
     });
-}
+};
 
 window.createVaultAccount = function createVaultAccount() {
   // creating KP, this do not create the actual account, only its keys
@@ -119,7 +122,7 @@ window.createVaultAccount = function createVaultAccount() {
     source: accountId,
   };
 
-  //Returns Type:  xdr.CreateAccountOp
+  // Returns Type:  xdr.CreateAccountOp
   const createOperation = operation.createAccount(ops1);
 
   // add my personal accountid ad signer and set options
@@ -140,8 +143,6 @@ window.createVaultAccount = function createVaultAccount() {
     value: vaultPK.publicKey(),
   };
   const addDataOperation = operation.manageData(ops3);
-
-  const operations = [createOperation, setOptionOperation, addDataOperation];
 
   // create a memo
   const msg = new StellarSdk.Memo('text', 'Creating Vault');
@@ -171,6 +172,7 @@ export default {
       balanceInfo: {},
       vaultExist: null,
       wrongPK: null,
+      privateKey: ''
     };
   },
   computed: {},
@@ -187,9 +189,11 @@ export default {
       axios.get(address)
         .then((data) => {
           this.balanceInfo = data.data.balances;
-          if (data.data.data !== {}) {
+          if (Object.keys(data.data.data).length > 0) {
+            console.log(data.data.data)
             this.vaultExist = 1;
           } else {
+            console.log("account exists but no vault found")
             this.vaultExist = 0;
           }
         })
@@ -198,10 +202,72 @@ export default {
           this.wrongPK = true;
         });
     },
-    // processContent(content) {
-    //   console.log
-    //   // window.getinfo(content);
-    // },
+    createVault() {
+      // vaultAccount is by default started at null, after creating a random KP
+      // account with createVaultAccount() this var is set to an actual value
+      let vaultAccount = null;
+      let personalAccount = null;
+      const address = `https://horizon-testnet.stellar.org/accounts/${this.$store.state.publicKey}`;
+      axios.get(address)
+        .then((data) => {
+          personalAccount = new StellarSdk.Account(this.$store.state.publicKey, data.data.sequence);
+
+          // creating KP, this do not create the actual account, only its keys
+          const vaultPK = kp.random();
+          const ops1 = {
+            destination: vaultPK.publicKey(),
+            startingBalance: '2',
+            source: this.$store.state.publicKey,
+          };
+
+          // Returns Type:  xdr.CreateAccountOp
+          const createOperation = operation.createAccount(ops1);
+
+          // add my personal accountid ad signer and set options
+          const ops2 = {
+            source: vaultPK.publicKey(),
+            master_weight: 2,
+            signer_type: 'ed25519PublicKey',
+            signer_address: this.$store.state.publicKey,
+            signer_weight: 2,
+            high_threshold: 5,
+            med_threshold: 3,
+          };
+          const setOptionOperation = operation.setOptions(ops2);
+
+          // add vault data to my accound data
+          const ops3 = {
+            name: 'vaultaccount',
+            value: vaultPK.publicKey(),
+          };
+          const addDataOperation = operation.manageData(ops3);
+
+          // create a memo
+          const msg = new StellarSdk.Memo('text', 'Creating Vault');
+
+          // create final transaxction with 3 operations and a memo
+          console.log(personalAccount)
+          const transaction = new StellarSdk.TransactionBuilder(personalAccount)
+            .addOperation(createOperation)
+            .addOperation(setOptionOperation)
+            .addOperation(addDataOperation)
+            .addMemo(msg)
+            .build();
+
+          // sign transactions with both personal and vault keypairs
+
+          transaction.sign(kp.fromPublicKey(this.$store.state.publicKey));
+          transaction.sign(vaultPK);
+
+          server.submitTransaction(transaction)
+            .then(data => console.log(data))
+            .catch(err => console.log(err));
+
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   },
   mounted() {
     this.getWalletInfo();
@@ -219,7 +285,7 @@ export default {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity .5s;
+  transition: opacity 0.5s;
 }
 
 .fade-enter,
@@ -240,5 +306,22 @@ tbody {
 
 .novaultmessage {
   margin: 1rem;
+}
+
+.collapsible {
+  width: 60%;
+  margin: auto;
+  min-width: 597px;
+  height: 30rem;
+  overflow-y: scroll;
+  -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+  background: rgb(250, 250, 250);
+}
+
+.errorResponse {
+  /* background: white; */
+  width:40%;
+  margin:auto;
 }
 </style>
