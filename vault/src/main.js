@@ -12,11 +12,15 @@ Vue.config.productionTip = false;
 const store = new VueX.Store({
   state: {
     count: 0,
-    publicKey: 'GBFSKT4OBPRDIUIXKPFJ2QJQFZ645537ATO53GYC7PFO4FU7FOLXOBAG',
+    publicKey: '',
+    vaultExist: false,
   },
   mutations: {
     updatePK(state, message) {
       state.publicKey = message;
+    },
+    confirmVault(state, value) {
+      state.vaultExist = value;
     },
   },
 });

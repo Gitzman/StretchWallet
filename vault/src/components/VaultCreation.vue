@@ -1,67 +1,62 @@
 <template>
-<transition name="fade">
-  <div id='VaultContents'>
-    <div v-if='true'>
-      <ul class="collapsiblelumen" data-collapsible="expandable">
-        <li>
-          <div class="collapsible-header">
-            <i class="material-icons">
-              star
-            </i> Lumens {{balanceInfo[balanceInfo.length - 1].balance}} XLM
-          </div>
-        </li>
-      </ul>
-      <div class='spacer'>
+<div id='VaultCreation'>
+  <transition name="fade">
+    <div v-if='$store.vaultExist === false' class='errorResponse'>
+      <div class='beforeCreation' v-if='!startVaultCreation'>
+        <h3>No Associated Vault</h3>
+        <a class="btn-large waves-effect light-blue darken-3" @click='createVault()'>
+        <i class="material-icons right">
+          add
+        </i>
+        Create vault to public key
+        </a>
       </div>
-      <ul v-collapsible class="collapsible" data-collapsible="expandable">
-        <li v-for='asset in balanceInfo'>
-          <div class="collapsible-header" v-if='asset.asset_code'>
-            <i class="material-icons">
-              lock
-            </i> {{asset.asset_code}}
+      <div v-else>
+        <div class="preloader-wrapper big active" v-if="xdrEnvelope===''">
+          <div class="spinner-layer spinner-blue-only">
+            <div class="circle-clipper left">
+              <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+              <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+              <div class="circle"></div>
+            </div>
           </div>
-
-          <div class="collapsible-body">
-            <span class='issuer_title'>Issuer:</span>
-            <span>{{asset.asset_issuer}}</span>
-            <table class='VaultTableComponent highlight centered'>
-              <thead>
-                <tr>
-                  <th>Balance</th>
-                  <th>Limit</th>
-                  <th>Asset Type</th>
-                  <th>Asset Code</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{{asset.balance}}</td>
-                  <td>{{asset.limit}}</td>
-                  <td>{{asset.asset_type}}</td>
-                  <td>{{asset.asset_type}}</td>
-                  <td v-if='asset.asset_code'>{{asset.asset_code}}</td>
-                  <td v-else>Lumens</td>
-                </tr>
-              </tbody>
-            </table>
+        </div>
+        <div v-else>
+          <h5>Vault Public Key:</h5>
+          <div class='keycontainer'>
+            <h5 class='vaultkey'>{{vaultPublicKey}}</h5>
+            <i class="material-icons right">content_copy</i>
           </div>
-        </li>
-      </ul>
+          <br>
+          <h5>Vault Secret:</h5>
+          <div class='keycontainer'>
+            <h5 class='vaultkey'>{{vaultPrivateKey}}</h5>
+            <i class="material-icons right">content_copy</i>
+          </div>
+          <br>
+          <br>
+          <div class="row">
+            <form class="col s12">
+              <div class="row">
+                <div class="input-field col m3">
+                  <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+                  <label for="textarea1">Transaction To sign</label>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <VaultCreation></VaultCreation>
-
-    <transition name="fade">
-      <div v-if='wrongPK === true' class='errorResponse'>
-        <h4>No account associated to this public key</h4>
-      </div>
-    </transition>
-  </div>
-</transition>
+  </transition>
+</div>
 </template>
 
 <script>
-import VaultCreation from './VaultCreation';
 import axios from 'axios';
 import jquery from 'jquery';
 import material from 'materialize-css';
@@ -80,44 +75,10 @@ const accountId = ''; //include public key here for dev
 let vaultAccount = null;
 let personalAccount = null;
 
-window.startDemo = function startDemo(accountdemo) {
-  // create personal random kp
-  // make request to network to get the actual sequence sequenceNumber
-  const address = `https://horizon-testnet.stellar.org/accounts/${accountdemo}`;
-  axios.get(address)
-    .then((data) => {
-      personalAccount = new StellarSdk.Account(accountdemo, data.data.sequence);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-  // create account with sequence number new StellarSdk.Account(accountId, "0");
-};
-
-window.getinfo = function getinfo() {
-  server.transactions()
-    .forAccount(accountId)
-    .call()
-    .then((page) => {
-      console.log('Page 1: ');
-      console.log(page.records);
-      return page.next();
-    })
-    .then((page) => {
-      console.log('Page 2: ');
-      console.log(page.records);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-};
-
 export default {
-  name: 'VaultContents',
+  name: 'VaultCreation',
   data() {
     return {
-      balanceInfo: {},
-      vaultExist: null,
       wrongPK: null,
       privateKey: '',
       xdrEnvelope: '',
@@ -126,13 +87,16 @@ export default {
       vaultPrivateKey: '',
     };
   },
-  components: {
-    VaultCreation,
-  },
   directives: {
     collapsible(el) {
       jquery(el).collapsible();
+    },
+    tabs(el) {
+      jquery(el).tabs()
     }
+  },
+  beforeRouteUpdate(to) {
+    getWalletInfo()
   },
   methods: {
     getWalletInfo() {
@@ -144,17 +108,14 @@ export default {
           this.balanceInfo = data.data.balances;
           if (Object.keys(data.data.data).length > 0) {
             console.log(data.data.data)
-            this.vaultExist = 1;
+            this.$store.commit('confirmVault', true);
           } else {
             console.log("account exists but no vault found")
-            this.vaultExist = 0;
           }
         })
         .catch((err) => {
           console.log(err);
-          if (this.$store.state.publicKey != '') {
-            this.wrongPK = true;
-          }
+          this.wrongPK = true;
         });
     },
     createVault() {
@@ -223,15 +184,11 @@ export default {
         .catch((err) => {
           console.log(err);
         });
-
     }
   },
   mounted() {
     this.getWalletInfo();
   },
-  props: [
-    'balanceinfo',
-  ],
 };
 </script>
 
@@ -267,31 +224,13 @@ tbody {
 
 .collapsible {
   width: 60%;
-  min-width: 597px;
   margin: auto;
+  min-width: 597px;
   height: 30rem;
   overflow-y: scroll;
   -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
-}
-
-.collapsiblelumen {
-  width: 60%;
-  min-width: 597px;
-  margin: auto;
-  overflow-y: scroll;
-  -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
-}
-
-.collapsible-body{
   background: rgb(250, 250, 250);
-}
-
-.spacer {
-height: 0.5rem;
-opacity: 0;
-background: none !important;
 }
 
 .errorResponse {

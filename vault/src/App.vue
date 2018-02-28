@@ -1,19 +1,23 @@
 <template>
 <div id="app">
   <NavBar></NavBar>
-  <Modal></Modal>
+  <FormInfoWallet></FormInfoWallet>
+  <!-- <Modal></Modal> -->
+  <router-view class='router'/>
+
 </div>
 </template>
 
 <script>
 import NavBar from './components/Navbar';
 import Modal from './components/Modal';
-
+import FormInfoWallet from './components/FormInfoWallet';
 export default {
   name: 'App',
   components: {
     NavBar,
     Modal,
+    FormInfoWallet,
   },
 };
 

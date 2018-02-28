@@ -9,42 +9,56 @@
           <input id="icon_prefix" v-model="updatedKey" name="textfield" value="" type="text" class="validate">
           <label for="icon_prefix">Public Key, Starts with G</label>
         </div>
-        <a class="btn-large waves-effect light-blue darken-3" @click='vaultExist = true'>
+        <router-link to='/info/' class="btn-large waves-effect light-blue darken-3">
           <i class="material-icons right">send</i>
           Send
-        </a>
+        </router-link>
       </form>
       <div class='container'></div>
     </div>
   </div>
   <!-- <Error :message="'PublicStartsWithG'" :valid='startsWithG'></Error> -->
-  <transition name="fade">
-
-    <div v-if='vaultExist' class='vaultinfo'>
-      <VaultContents />
+  <div v-show='$route.path != "/" && $store.state.vaultExist === true' class="row tabscomp blue-text">
+    <div class="col tabscomp1 s12">
+      <ul v-tabs class="tabs tabs-fixed-width">
+        <li class="tab col s3">
+          <router-link to='/info' class='statustab active'>Contents</router-link>
+        </li>
+        <li class="tab col s3">
+          <router-link to='/deposit' class='statustab'>Deposit</router-link>
+        </li>
+        <li class="tab col s3">
+          <a class='statustab'>Withdraw</a>
+        </li>
+      </ul>
     </div>
-  </transition>
-
+  </div>
 </div>
 </template>
 
-
 <script>
 import VaultContents from './VaultContents';
+import Deposit from './Deposit.vue'
 import Error from './Error';
-
+import jquery from 'jquery'
 export default {
   name: 'FormInfoWallet',
   data() {
     return {
       pk: this.$store.state.publicKey,
-      vaultExist: false,
       error: [],
+      currentOperation: this.$store.state.currentOperation,
     };
+  },
+  directives: {
+    tabs(el) {
+      jquery(el).tabs()
+    }
   },
   components: {
     Error,
     VaultContents,
+    Deposit,
   },
   computed: {
     updatedKey: {
@@ -143,5 +157,55 @@ export default {
 .btn-large{
   margin-right: 0.5rem
 }
+
+
+/* label color */
+ .input-field label {
+   color: black !important;
+ }
+ /* label focus color */
+ .input-field input[type=text]:focus + label {
+   color: #337ab7 !important;
+ }
+ /* label underline focus color */
+ .input-field input[type=text]:focus {
+   border-bottom: 1px solid #337ab7 !important;
+   box-shadow: 0 1px 0 0 #337ab7 !important;
+ }
+ /* valid color */
+ .input-field input[type=text].valid {
+   border-bottom: 1px solid #337ab7 !important;
+   box-shadow: 0 1px 0 0 #337ab7 !important;
+ }
+ /* invalid color */
+ .input-field input[type=text].invalid {
+   border-bottom: 1px solid #337ab7 !important;
+   box-shadow: 0 1px 0 0 #337ab7 !important;
+ }
+ /* icon prefix focus color */
+ .input-field .prefix.active {
+   color: #337ab7 !important;
+ }
+
+ .tabscomp {
+   width: 60%;
+   min-width: 597px;
+   -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+   background-color: white;
+ }
+
+ .tabscomp1 {
+   padding: 0 !important;
+ }
+
+ .tabs .indicator {
+   background-color: #337ab7;
+   color: #337ab7;
+ }
+
+ .statustab {
+   color: #337ab7 !important;
+ }
 
 </style>

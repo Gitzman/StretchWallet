@@ -1,12 +1,14 @@
 <template>
 <div class='modcomp'>
-  <router-view class='router'/>
+  <!-- <router-view class='router'/> -->
 </div>
 </template>
 
 <script>
 export default {
   name: 'Modal',
+  components:{
+  },
 };
 </script>
 
