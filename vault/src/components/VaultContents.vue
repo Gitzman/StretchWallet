@@ -7,23 +7,21 @@
           <div class="collapsible-header">
             <i class="material-icons">
               star
-            </i> Lumens {{balanceInfo[balanceInfo.length - 1].balance}} XLM
+            </i> Lumens {{$store.state.balances[$store.state.balances.length - 1].balance}} XLM
           </div>
         </li>
       </ul>
       <div class='spacer'>
       </div>
       <ul v-collapsible class="collapsible" data-collapsible="expandable">
-        <li v-for='asset in balanceInfo'>
+        <li v-for='asset in $store.state.balances'>
           <div class="collapsible-header" v-if='asset.asset_code'>
             <i class="material-icons">
               lock
-            </i> {{asset.asset_code}}
+            </i> {{asset.asset_code}}: {{asset.balance}}
           </div>
 
           <div class="collapsible-body">
-            <span class='issuer_title'>Issuer:</span>
-            <span>{{asset.asset_issuer}}</span>
             <table class='VaultTableComponent highlight centered'>
               <thead>
                 <tr>
@@ -135,28 +133,6 @@ export default {
     }
   },
   methods: {
-    getWalletInfo() {
-      const pk = this.$store.state.publicKey;
-      const address = `https://horizon-testnet.stellar.org/accounts/${pk}`;
-      console.log(address);
-      axios.get(address)
-        .then((data) => {
-          this.balanceInfo = data.data.balances;
-          if (Object.keys(data.data.data).length > 0) {
-            console.log(data.data.data)
-            this.vaultExist = 1;
-          } else {
-            console.log("account exists but no vault found")
-            this.vaultExist = 0;
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-          if (this.$store.state.publicKey != '') {
-            this.wrongPK = true;
-          }
-        });
-    },
     createVault() {
       // vaultAccount is by default started at null, after creating a random KP
       // account with createVaultAccount() this var is set to an actual value
@@ -224,10 +200,7 @@ export default {
           console.log(err);
         });
 
-    }
-  },
-  mounted() {
-    this.getWalletInfo();
+    },
   },
   props: [
     'balanceinfo',
@@ -284,14 +257,14 @@ tbody {
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
 }
 
-.collapsible-body{
+.collapsible-body {
   background: rgb(250, 250, 250);
 }
 
 .spacer {
-height: 0.5rem;
-opacity: 0;
-background: none !important;
+  height: 0.5rem;
+  opacity: 0;
+  background: none !important;
 }
 
 .errorResponse {

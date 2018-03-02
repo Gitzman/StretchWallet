@@ -6,15 +6,9 @@ import Deposit from '../components/Deposit';
 // import Withdraw from '../components/Withdraw';
 export default new Router({
   mode: 'history',
-  routes: [{
-      path: '/',
-      components: {
-        default: null,
-        contents: null,
-      },
-    },
+  routes: [
     {
-      path: '/info',
+      path: '/',
       components: {
         default: VaultContents,
         contents: VaultContents,

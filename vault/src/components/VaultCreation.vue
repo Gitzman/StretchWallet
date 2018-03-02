@@ -99,25 +99,6 @@ export default {
     getWalletInfo()
   },
   methods: {
-    getWalletInfo() {
-      const pk = this.$store.state.publicKey;
-      const address = `https://horizon-testnet.stellar.org/accounts/${pk}`;
-      console.log(address);
-      axios.get(address)
-        .then((data) => {
-          this.balanceInfo = data.data.balances;
-          if (Object.keys(data.data.data).length > 0) {
-            console.log(data.data.data)
-            this.$store.commit('confirmVault', true);
-          } else {
-            console.log("account exists but no vault found")
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-          this.wrongPK = true;
-        });
-    },
     createVault() {
       // vaultAccount is by default started at null, after creating a random KP
       // account with createVaultAccount() this var is set to an actual value
@@ -187,7 +168,6 @@ export default {
     }
   },
   mounted() {
-    this.getWalletInfo();
   },
 };
 </script>

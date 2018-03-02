@@ -7,7 +7,7 @@
 <script>
 export default {
   name: 'Modal',
-  components:{
+  components: {
   },
 };
 </script>
