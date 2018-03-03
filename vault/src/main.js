@@ -28,7 +28,7 @@ const store = new VueX.Store({
   state: {
     count: 0,
     publicKey: '',
-    vaultExist: false,
+    vaultExist: null,
     balances: [],
     validPublicKey: false,
     newVault: {
@@ -60,6 +60,9 @@ const store = new VueX.Store({
     setBalances(state, value) {
       state.balances = value;
     },
+    setVaultPublicKey(state, value){
+      state.newVault.publicKey = value;
+    }
   },
 });
 

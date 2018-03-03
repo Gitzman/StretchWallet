@@ -1,7 +1,7 @@
 <template>
 <div id='VaultCreation'>
   <transition name="fade">
-    <div v-if='$store.vaultExist === false' class='errorResponse'>
+    <div v-if='$store.state.vaultExist === false' class='errorResponse'>
       <div class='beforeCreation' v-if='!startVaultCreation'>
         <h3>No Associated Vault</h3>
         <a class="btn-large waves-effect light-blue darken-3" @click='createVault()'>
@@ -136,7 +136,7 @@ export default {
 
           // add vault data to my accound data
           const ops3 = {
-            name: 'vaultaccount',
+            name: 'vault_account',
             value: vaultKP.publicKey(),
           };
           const addDataOperation = operation.manageData(ops3);

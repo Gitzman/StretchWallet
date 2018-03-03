@@ -1,7 +1,7 @@
 <template>
 <transition name="fade">
   <div id='VaultContents'>
-    <div v-if='true'>
+    <div v-if='$store.state.vaultExist'>
       <ul class="collapsiblelumen" data-collapsible="expandable">
         <li>
           <div class="collapsible-header">

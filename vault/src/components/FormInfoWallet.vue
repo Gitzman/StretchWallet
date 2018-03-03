@@ -17,7 +17,7 @@
     </div>
   </div>
   <!-- <Error :message="'PublicStartsWithG'" :valid='startsWithG'></Error> -->
-  <div v-show='$store.state.vaultExist === true' class="row tabscomp blue-text">
+  <div v-if='$store.state.vaultExist === true' class="row tabscomp blue-text">
     <div class="col tabscomp1 s12">
       <ul v-tabs class="tabs tabs-fixed-width">
         <li class="tab col s3">
@@ -32,6 +32,9 @@
       </ul>
     </div>
   </div>
+  <div>
+    <VaultCreation />
+  </div>
 </div>
 </template>
 
@@ -39,6 +42,7 @@
 import jquery from 'jquery';
 import axios from 'axios';
 import StellarSdk from 'stellar-sdk';
+import VaultCreation from './VaultCreation';
 import VaultContents from './VaultContents';
 import Deposit from './Deposit.vue';
 import Error from './Error';
@@ -89,6 +93,7 @@ export default {
     Error,
     VaultContents,
     Deposit,
+    VaultCreation,
   },
   computed: {
     updatedKey: {
@@ -116,16 +121,23 @@ export default {
       .then(data => {
 
         if (data.data_attr.hasOwnProperty('vault_account')) {
-          this.$store.commit('confirmVault', true);
 
           const vaultkey =  window.atob(data.data_attr.vault_account);
+
+          // add vaultkey to the state to have the public key of the vault in the state
+
+          this.$store.commit('setVaultPublicKey', vaultkey);
+
           server.loadAccount(vaultkey)
           .then(vaultdata => {
             this.$store.commit('setBalances', vaultdata.balances);
+            this.$store.commit('confirmVault', true);
+
           })
           .catch(err => {
             alert('The vault account associated to your account is invalid')
           })
+
           return null
         }
         else{
