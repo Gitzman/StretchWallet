@@ -1,5 +1,5 @@
 <template>
-<div class='depositcomp'>
+<div class='depositcomp' v-show='$store.state.vaultExist'>
   <!-- <br>
   <form action="#">
     <p>
@@ -7,21 +7,21 @@
       <label for="filled-in-box">Create new token</label>
     </p>
   </form> -->
+
   <div class='row'>
-    <div class="input-field col s6">
-      <select class='selecttag'>
-        <option disbled selected></option>
-        <option v-for='asset in $store.state.balances' v-if='asset.asset_code' :value='asset.asset_code' class='optiontag #337ab7'>{{asset.asset_code}}</option>
-      </select>
-      <label>Materialize Select</label>
-      <input placeholder="amount" type='number' v-model='amount'></input>
+    <!-- <h1 v-for='asset in balances'> ALOHA {{asset}}</h1> -->
+    <div class="left-column input-field col s6">
+      <input list='tokens' placeholder='Token code'></input>
+      <datalist id='tokens'>
+        <option value='NEW: Create new token' />
+        <option v-for='asset in balances' :value='asset.asset_code' />
+      </datalist>
+      <input placeholder="Amount" type='number' v-model='amount'></input>
+      <input placeholder="Symbol ABC QWE" v-model='symbol'></input>
     </div>
-  </div>
-  <div class='row'>
-    <div class="input-field col s6">
-      <input placeholder="symbol" v-model='symbol'></input>
-      <input placeholder="description" v-model='description'></input>
-      <input placeholder="denomination" v-model='denomination'></input>
+    <div class="right-column input-field col s6">
+      <input placeholder="Description" v-model='description'></input>
+      <input placeholder="Denomination" v-model='denomination'></input>
     </div>
   </div>
   <a @click='makeDeposit()' class="btn-large waves-effect light-blue darken-3">
@@ -46,17 +46,21 @@ export default {
   data() {
     return {
       depositOld: false, //is true if the deposit is in the same field as an old safe box
-      amount: 500,
-      symbol: 'SAFEDEMO',
-      description: 'This is a fake token on test net',
-      denomination: 10,
+      amount: null,
+      symbol: null,
+      description: null,
+      denomination: null,
     };
   },
-  computed: {},
+  computed: {
+    balances() {
+      return this.$store.state.balances;
+    }
+  },
   directives: {
     select(el) {
       jquery(el).material_select()
-    }
+    },
   },
   mounted() {
     jquery(document).ready(function() {
@@ -178,11 +182,11 @@ export default {
             .build()
 
 
-          transaction.sign(kp.fromPublicKey( this.$store.state.newVault.publicKey ));
-          transaction.sign(kp.fromPublicKey( this.$store.state.publicKey ));
+          transaction.sign(kp.fromPublicKey(this.$store.state.newVault.publicKey));
+          transaction.sign(kp.fromPublicKey(this.$store.state.publicKey));
           transaction.sign(safeKP);
           // create transaction to be signed in the stellar laboratory
-          console.log( transaction.toEnvelope().toXDR().toString("base64") );
+          console.log(transaction.toEnvelope().toXDR().toString("base64"));
 
 
 
@@ -194,6 +198,10 @@ export default {
 </script>
 
 <style scoped>
+.right-column {
+  margin: 0px;
+}
+
 .optiontag {
   color: #337ab7 !important;
 }
@@ -215,6 +223,8 @@ export default {
   width: 60%;
   min-width: 597px;
   height: 10rem;
+  max-height: 22rem;
+  min-height: 22rem;
   margin: auto;
   width: 50%;
   height: 50%;

@@ -32,9 +32,6 @@
       </ul>
     </div>
   </div>
-  <div>
-    <VaultCreation />
-  </div>
 </div>
 </template>
 
@@ -192,6 +189,7 @@ export default {
 
 .btn-large {
   margin: auto;
+  margin-right: 0.5rem;
 }
 
 .container {
@@ -220,11 +218,6 @@ export default {
   {
   opacity: 0;
 }
-
-.btn-large {
-  margin-right: 0.5rem
-}
-
 
 /* label color */
 

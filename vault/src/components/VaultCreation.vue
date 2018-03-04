@@ -1,6 +1,6 @@
 <template>
-<div id='VaultCreation'>
-  <transition name="fade">
+<transition name="fade">
+  <div id='VaultCreation'>
     <div v-if='$store.state.vaultExist === false' class='errorResponse'>
       <div class='beforeCreation' v-if='!startVaultCreation'>
         <h3>No Associated Vault</h3>
@@ -40,11 +40,20 @@
           <br>
           <br>
           <div class="row">
+            <div class="input-field col s6">
+              <input id="first_name" type="text" v-model='privateKey' class="validate">
+              <label for="first_name">[Optional] Secret to sign transaction</label>
+            </div>
+            <button class="btn waves-effect light-blue darken-3" @click='submitTransaction()'>Submit
+              <i class="material-icons right">send</i>
+            </button>
+          </div>
+          <div class="row">
             <form class="col s12">
+              <label>Transaction to sign</label>
               <div class="row">
                 <div class="input-field col m3">
                   <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
-                  <label for="textarea1">Transaction To sign</label>
                 </div>
               </div>
             </form>
@@ -52,8 +61,8 @@
         </div>
       </div>
     </div>
-  </transition>
-</div>
+  </div>
+</transition>
 </template>
 
 <script>
@@ -85,6 +94,7 @@ export default {
       startVaultCreation: false,
       vaultPublicKey: '',
       vaultPrivateKey: '',
+      secret: '',
     };
   },
   directives: {
@@ -99,6 +109,20 @@ export default {
     getWalletInfo()
   },
   methods: {
+    submitTransaction() {
+      var transaction = new StellarSdk.Transaction( this.xdrEnvelope );
+      var privKP = kp.fromSecret( this.privateKey )
+      console.log(privKP)
+      transaction.sign(privKP);
+
+      server.submitTransaction(transaction)
+        .then(data => {
+          alert("Success: " + data._links.transaction.href);
+          console.log(data);
+        })
+        .catch(err => alert(err))
+
+    },
     createVault() {
       // vaultAccount is by default started at null, after creating a random KP
       // account with createVaultAccount() this var is set to an actual value
@@ -167,8 +191,7 @@ export default {
         });
     }
   },
-  mounted() {
-  },
+  mounted() {},
 };
 </script>
 

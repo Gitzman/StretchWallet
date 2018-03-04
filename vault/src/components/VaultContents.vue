@@ -47,7 +47,7 @@
       </ul>
     </div>
 
-    <VaultCreation></VaultCreation>
+    <VaultCreation />
 
     <transition name="fade">
       <div v-if='wrongPK === true' class='errorResponse'>
