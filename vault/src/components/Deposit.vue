@@ -46,10 +46,10 @@ export default {
   data() {
     return {
       depositOld: false, //is true if the deposit is in the same field as an old safe box
-      amount: null,
-      symbol: null,
-      description: null,
-      denomination: null,
+      amount: 500,
+      symbol: 'IGN',
+      description: 'new token ignacio',
+      denomination: 10,
     };
   },
   computed: {
@@ -75,7 +75,7 @@ export default {
 
       const ops1 = {
         source: this.$store.state.publicKey,
-        destination: safeKP.publicKey(),
+        destination: this.$store.state.newVault.publicKey,
         amount: '1',
         asset: new StellarSdk.Asset('XLM', null),
       };
@@ -83,7 +83,7 @@ export default {
       const payTrustlineOperation = StellarSdk.Operation.payment(ops1);
 
       const ops2 = {
-        source: this.$store.state.newVault.publicKey,
+        source: this.$store.state.publicKey,
         destination: safeKP.publicKey(),
         startingBalance: this.amount + 1.5 + '',
       };
@@ -99,50 +99,50 @@ export default {
       const trustIssuerOperation = StellarSdk.Operation.changeTrust(ops3);
 
       const ops4 = {
-        'source': safeKP.publicKey(),
-        'set_flags': 1,
+        source: safeKP.publicKey(),
+        setFlags: 1,
       };
 
       const setAuthorityOperation = StellarSdk.Operation.setOptions(ops4);
 
       const ops5 = {
-        'source': this.$store.state.publicKey,
-        'trustor': this.$store.state.newVault.publicKey,
-        'assetCode': this.symbol,
-        'authorize': 'True',
+        source: safeKP.publicKey(),
+        trustor: this.$store.state.newVault.publicKey,
+        assetCode: this.symbol,
+        authorize: true,
       };
 
       const trustUserOperation = StellarSdk.Operation.allowTrust(ops5);
 
       const ops6 = {
-        'source': safeKP.publicKey(),
-        'destination': this.$store.state.newVault.publicKey,
-        'amount': (this.amount / this.denomination) + '',
-        'asset': safeAsset,
+        source: safeKP.publicKey(),
+        destination: this.$store.state.newVault.publicKey,
+        amount: (this.amount / this.denomination) + '',
+        asset: safeAsset,
       };
 
       const payUserOperation = StellarSdk.Operation.payment(ops6);
 
       const ops7 = {
-        'source': safeKP.publicKey(),
-        'selling': storedAsset,
-        'buying': safeAsset,
-        'amount': this.amount + '',
-        'price': (1.0 / this.denomination) + '',
+        source: safeKP.publicKey(),
+        selling: storedAsset,
+        buying: safeAsset,
+        amount: this.amount + '',
+        price: (1.0 / this.denomination) + '',
       };
 
       const sellOfferOperation = StellarSdk.Operation.createPassiveOffer(ops7);
 
       const ops8 = {
-        'source': safeKP.publicKey(),
-        'master_weight': 0
+        source: safeKP.publicKey(),
+        masterWeight: 0
       };
 
       const killSafeKeyOperation = StellarSdk.Operation.setOptions(ops8);
 
       const ops9 = {
-        'name': safeKP.publicKey(),
-        'value': this.description,
+        name: safeKP.publicKey(),
+        value: this.description,
       };
 
       const storeDescriptionOperation = StellarSdk.Operation.manageData(ops9);
@@ -167,7 +167,7 @@ export default {
           const msg = new StellarSdk.Memo('text', 'Creating a safe deposit');
 
           const vaultAccount = new StellarSdk.Account(this.$store.state.newVault.publicKey, sequence)
-
+          console.log(vaultAccount);
           const transaction = new StellarSdk.TransactionBuilder(vaultAccount)
             .addOperation(issueAccountOperation)
             .addOperation(payTrustlineOperation)
@@ -182,8 +182,8 @@ export default {
             .build()
 
 
-          transaction.sign(kp.fromPublicKey(this.$store.state.newVault.publicKey));
-          transaction.sign(kp.fromPublicKey(this.$store.state.publicKey));
+          // transaction.sign(kp.fromPublicKey(this.$store.state.newVault.publicKey));
+          // transaction.sign(kp.fromPublicKey(this.$store.state.publicKey));
           transaction.sign(safeKP);
           // create transaction to be signed in the stellar laboratory
           console.log(transaction.toEnvelope().toXDR().toString("base64"));
