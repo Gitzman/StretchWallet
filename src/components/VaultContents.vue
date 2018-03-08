@@ -7,18 +7,19 @@
           <div class="collapsible-header">
             <i class="material-icons">
               star
-            </i> Lumens {{$store.state.balances[$store.state.balances.length - 1].balance}} XLM
+            </i>
+            Lumens {{$store.state.balances['undefined'].safes[0].amount}} XLM
           </div>
         </li>
       </ul>
       <div class='spacer'>
       </div>
       <ul v-collapsible class="collapsible" data-collapsible="expandable">
-        <li v-for='asset in $store.state.balances'>
-          <div class="collapsible-header" v-if='asset.asset_code'>
+        <li v-for='asset in Object.keys($store.state.balances)' v-if='asset != "undefined"'>
+          <div class="collapsible-header">
             <i class="material-icons">
               lock
-            </i> {{asset.asset_code}}: {{asset.balance}}
+            </i>{{calculateTotalBalance(asset)}} {{asset}}
           </div>
 
           <div class="collapsible-body">
@@ -33,7 +34,7 @@
               </thead>
               <tbody>
                 <tr>
-                  <td>{{asset.balance}}</td>
+                  <td>{{calculateTotalBalance(asset)}}</td>
                   <td>{{asset.limit}}</td>
                   <td>{{asset.asset_type}}</td>
                   <td>{{asset.asset_type}}</td>
@@ -101,6 +102,14 @@ export default {
     }
   },
   methods: {
+    calculateTotalBalance(tokencode) {
+      const balances = this.$store.state.balances
+      var counter = 0;
+      for (var i = 0; i < balances[tokencode].safes.length; i++) {
+        counter += balances[tokencode].safes[i].amount;
+      }
+      return counter;
+    },
     createVault() {
       // vaultAccount is by default started at null, after creating a random KP
       // account with createVaultAccount() this var is set to an actual value
@@ -167,7 +176,6 @@ export default {
         .catch((err) => {
           console.log(err);
         });
-
     },
   },
   props: [

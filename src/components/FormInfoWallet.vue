@@ -27,7 +27,7 @@
           <router-link to='/deposit' class='statustab'>Deposit</router-link>
         </li>
         <li class="tab col s3">
-          <a class='statustab'>Withdraw</a>
+          <router-link to='/withdraw' class='statustab'>Withdraw</router-link>
         </li>
       </ul>
     </div>
@@ -121,11 +121,12 @@ export default {
           this.$store.commit('setVaultPublicKey', vaultkey);
           server.loadAccount(vaultkey)
           .then(vaultdata => {
-            this.$store.commit('setBalances', processContents(vaultdata.balances));
+            // console.log(vaultdata.balances);
+            this.$store.commit('setBalances', vaultdata.balances);
             this.$store.commit('confirmVault', true);
           })
           .catch(err => {
-            alert('The vault account associated to your account is invalid');
+            alert(err + 'The vault account associated to your account is invalid');
           })
           return null //required by javacript to return something
         }

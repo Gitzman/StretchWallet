@@ -13,7 +13,7 @@
       <input list='tokens' placeholder='Token code' :disabled='xdrEnvelope != null'></input>
       <datalist id='tokens' :disabled='xdrEnvelope != null'>
         <option value='NEW: Create new token' />
-        <option v-for='asset in balances' :value='asset.asset_code' />
+        <option v-for='asset in balances' :value='asset' v-if='asset != "undefined"'/>
       </datalist>
       <input placeholder="Amount" type='number' v-model='amount' :disabled='xdrEnvelope != null'></input>
       <input placeholder="Symbol ABC QWE" v-model='symbol' :disabled='xdrEnvelope != null'></input>
@@ -73,7 +73,8 @@ export default {
   },
   computed: {
     balances() {
-      return this.$store.state.balances;
+      var res = Object.keys(this.$store.state.balances);
+      return res;
     }
   },
   directives: {
@@ -95,7 +96,7 @@ export default {
       transaction.sign(vaultprivKP);
       server.submitTransaction(transaction)
         .then(data => {
-          alert("Success: " + +data._links.transaction.href);
+          alert("Success: " + data._links.transaction.href);
         })
         .catch(err => alert(err))
 

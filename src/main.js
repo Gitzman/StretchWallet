@@ -24,6 +24,65 @@ let personalAccount = null;
 Vue.use(VueX);
 Vue.config.productionTip = false;
 
+function quicksort(arr) {
+  if (arr.length == 0 || arr.length == 1) {
+    return arr;
+  }
+
+  const middle = arr[0];
+  const bigger = [];
+  const smaller = [];
+
+  for (var i = 1; i < arr.length; i++) {
+    if (arr[i].amount < middle.amount) {
+      smaller.push(arr[i]);
+    } else {
+      bigger.push(arr[i]);
+    }
+  }
+
+  var a = quicksort(smaller);
+  var b = quicksort(bigger);
+  a.push.apply(a, [middle])
+  a.push.apply(a, b)
+  return a
+};
+
+
+function processContents(balances) {
+  var final_object = {};
+
+  for (var i = 0; i < balances.length; i++) {
+    const key = balances[i].asset_code;
+    if (key in final_object) {
+      const addSafe = {
+        'issuer': balances[i].asset_issuer,
+        'amount': parseFloat(balances[i].balance)
+      };
+      final_object[key].safes.push( addSafe );
+    }
+    else {
+      final_object[key] = {
+        'safes': [
+          {
+          'issuer': balances[i].asset_issuer,
+          'amount': parseFloat(balances[i].balance)
+        }
+        ],
+        'limit': balances[i].limit,
+        'asset_type': balances[i].asset_type
+      };
+    }
+  }
+
+// could be optimized by inserting every new register in a sorted list , TODO
+  for (var key in final_object) {
+    final_object[key].safes = quicksort(final_object[key].safes);
+  }
+  return final_object
+}
+
+
 const store = new VueX.Store({
   state: {
     count: 0,
@@ -58,9 +117,9 @@ const store = new VueX.Store({
       state.balances = value;
     },
     setBalances(state, value) {
-      state.balances = value;
+      state.balances = processContents(value);
     },
-    setVaultPublicKey(state, value){
+    setVaultPublicKey(state, value) {
       state.newVault.publicKey = value;
     }
   },
