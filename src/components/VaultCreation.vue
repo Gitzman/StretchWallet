@@ -112,13 +112,11 @@ export default {
     submitTransaction() {
       var transaction = new StellarSdk.Transaction( this.xdrEnvelope );
       var privKP = kp.fromSecret( this.privateKey )
-      console.log(privKP)
       transaction.sign(privKP);
 
       server.submitTransaction(transaction)
         .then(data => {
           alert("Success: " + data._links.transaction.href);
-          console.log(data);
         })
         .catch(err => alert(err))
 
@@ -169,7 +167,6 @@ export default {
           const msg = new StellarSdk.Memo('text', 'Creating Vault');
 
           // create final transaxction with 3 operations and a memo
-          console.log(personalAccount)
           const transaction = new StellarSdk.TransactionBuilder(personalAccount)
             .addOperation(createOperation)
             .addOperation(setOptionOperation)
@@ -253,5 +250,6 @@ tbody {
 #textarea1 {
   min-height: 200px;
   color: black;
+  overflow-y: scroll;
 }
 </style>

@@ -1,0 +1,112 @@
+<template>
+<div id='SendXLM' class='sendcomps' v-show='$store.state.vaultExist'>
+  <input placeholder='Amount' v-model='amount' type='number' :disabled='xdrEnvelope != null'></input>
+  <input placeholder='Destination' v-model='destination' type='text' :disabled='xdrEnvelope != null'></input>
+
+  <div v-if='xdrEnvelope'>
+    <form class="col s12">
+      <label>Transaction to sign</label>
+      <div class="row">
+        <div class="input-field col m3">
+          <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+        </div>
+      </div>
+    </form>
+    <div>
+      <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'></input>
+    </div>
+  </div>
+
+  <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
+    <i class="material-icons right">send</i> Create Transaction
+  </a>
+
+  <a @click='submitTransaction()' v-else class="btn-large waves-effect light-blue darken-3">
+    <i class="material-icons right">send</i> Send XLM
+  </a>
+</div>
+</template>
+
+<script>
+import StellarSdk from 'stellar-sdk';
+StellarSdk.Network.useTestNetwork();
+
+const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+const kp = StellarSdk.Keypair;
+
+export default {
+  name:'SendXLM',
+  data() {
+    return {
+      pk: this.$store.state.publicKey,
+      error: [],
+      xdrEnvelope: null,
+      destination: null,
+      userPrivateKey: null,
+      amount: null
+    };
+  },
+  methods: {
+    submitTransaction() {
+      var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
+      var privKP = kp.fromSecret(this.userPrivateKey);
+      transaction.sign(privKP);
+      server.submitTransaction(transaction)
+        .then(data => {
+          alert('Success:' + data._links.transaction.href);
+          console.log(data);
+        })
+        .catch(err => alert(err))
+    },
+    createTransaction() {
+      const ops = {
+        destination: this.destination,
+        asset: new StellarSdk.Asset('XLM', null),
+        amount: this.amount,
+        source: this.$store.state.publicKey
+      };
+      console.log('ops', ops);
+      const sendXLMOperation = StellarSdk.Operation.payment(ops);
+      console.log('print operation', sendXLMOperation);
+
+      server.loadAccount(this.$store.state.publicKey)
+        .then(accountresp => {
+
+          const sequence = accountresp.sequenceNumber() + '';
+
+          const msg = new StellarSdk.Memo('text', 'Sending XLM');
+
+          const personalAccount = new StellarSdk.Account(this.$store.state.publicKey, sequence);
+
+          const transaction = new StellarSdk.TransactionBuilder(personalAccount)
+          .addOperation(sendXLMOperation)
+          .addMemo(msg)
+          .build();
+
+          this.xdrEnvelope = transaction.toEnvelope().toXDR().toString("base64");
+        })
+        .catch(err => console.log(err))
+    }
+  }
+};
+</script>
+
+<style scoped>
+.sendcomps {
+  display: block;
+  padding: 1rem;
+  width: 60%;
+  min-width: 597px;
+  height: 10rem;
+  max-height: 40rem;
+  min-height: 37rem;
+  margin: auto;
+  width: 50%;
+  height: 50%;
+  background-color: white;
+  -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px
+  rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px
+  rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+}
+</style>

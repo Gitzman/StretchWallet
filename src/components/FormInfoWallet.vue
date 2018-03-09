@@ -29,6 +29,9 @@
         <li class="tab col s3">
           <router-link to='/withdraw' class='statustab'>Withdraw</router-link>
         </li>
+        <li class="tab col s3">
+          <router-link to='/send' class='statustab'>Send XLM</router-link>
+        </li>
       </ul>
     </div>
   </div>
@@ -46,31 +49,6 @@ import Error from './Error';
 
 StellarSdk.Network.useTestNetwork();
 const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
-
-function processContents(arrAssets) {
-  console.log('processing data');
-  let finalArray = [];
-  let i = 0;
-  let j = 0;
-  for (i; i < arrAssets.length; i += 1) {
-    const current = arrAssets[i];
-    let exists = false;
-    for (j = 0; j < finalArray.length; j += 1) {
-      if (current.asset_code === finalArray[j].asset_code) {
-        finalArray[j].balance = parseFloat(finalArray[j].balance) + parseFloat(current.balance);
-        exists = true;
-        break;
-      }
-    }
-    if (!exists) {
-      current.balance = parseFloat(current.balance);
-      current.limit = parseFloat(current.limit);
-      finalArray.push(current);
-    }
-  }
-  console.log('returning', finalArray);
-  return finalArray;
-}
 
 export default {
   name: 'FormInfoWallet',
@@ -121,9 +99,9 @@ export default {
           this.$store.commit('setVaultPublicKey', vaultkey);
           server.loadAccount(vaultkey)
           .then(vaultdata => {
-            // console.log(vaultdata.balances);
             this.$store.commit('setBalances', vaultdata.balances);
             this.$store.commit('confirmVault', true);
+            this.$store.commit('setPersonalLumens',  data.balances[0].balance)
           })
           .catch(err => {
             alert(err + 'The vault account associated to your account is invalid');

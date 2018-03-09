@@ -4,7 +4,8 @@ import Modal from '../components/Modal';
 import VaultContents from '../components/VaultContents';
 import Deposit from '../components/Deposit';
 import Withdraw from '../components/Withdraw';
-// import Withdraw from '../components/Withdraw';
+import SendXLM from '../components/SendXLM.vue';
+
 export default new Router({
   mode: 'history',
   routes: [{
@@ -26,6 +27,13 @@ export default new Router({
       components: {
         default: Withdraw,
         contents: Withdraw,
+      },
+    },
+    {
+      path: '/send',
+      components: {
+        default: SendXLM,
+        contents: SendXLM,
       },
     },
   ],

@@ -83,12 +83,10 @@ export default {
   name: 'VaultContents',
   data() {
     return {
-      balanceInfo: {},
       vaultExist: null,
       wrongPK: null,
       privateKey: '',
       xdrEnvelope: '',
-      startVaultCreation: false,
       vaultPublicKey: '',
       vaultPrivateKey: '',
     };
@@ -110,77 +108,7 @@ export default {
       }
       return counter;
     },
-    createVault() {
-      // vaultAccount is by default started at null, after creating a random KP
-      // account with createVaultAccount() this var is set to an actual value
-      this.startVaultCreation = true
-
-      let vaultAccount = null;
-      let personalAccount = null;
-      const address = `https://horizon-testnet.stellar.org/accounts/${this.$store.state.publicKey}`;
-      axios.get(address)
-        .then((data) => {
-          personalAccount = new StellarSdk.Account(this.$store.state.publicKey, data.data.sequence);
-
-          // creating KP, this do not create the actual account, only its keys
-          const vaultKP = kp.random();
-          const ops1 = {
-            destination: vaultKP.publicKey(),
-            startingBalance: '2',
-            source: this.$store.state.publicKey,
-          };
-
-          // Returns Type:  xdr.CreateAccountOp
-          const createOperation = operation.createAccount(ops1);
-
-          // add my personal accountid ad signer and set options
-          const ops2 = {
-            source: vaultKP.publicKey(),
-            master_weight: 2,
-            signer_type: 'ed25519PublicKey',
-            signer_address: this.$store.state.publicKey,
-            signer_weight: 2,
-            high_threshold: 5,
-            med_threshold: 3,
-          };
-          const setOptionOperation = operation.setOptions(ops2);
-
-          // add vault data to my accound data
-          const ops3 = {
-            name: 'vaultaccount',
-            value: vaultKP.publicKey(),
-          };
-          const addDataOperation = operation.manageData(ops3);
-
-          // create a memo
-          const msg = new StellarSdk.Memo('text', 'Creating Vault');
-
-          // create final transaxction with 3 operations and a memo
-          console.log(personalAccount)
-          const transaction = new StellarSdk.TransactionBuilder(personalAccount)
-            .addOperation(createOperation)
-            .addOperation(setOptionOperation)
-            .addOperation(addDataOperation)
-            .addMemo(msg)
-            .build();
-
-          // sign transactions with both personal and vault public key
-          transaction.sign(vaultKP);
-
-          // create transaction to be signed in the stellar laboratory
-          this.xdrEnvelope = transaction.toEnvelope().toXDR().toString("base64");
-          this.vaultPublicKey = vaultKP.publicKey();
-          this.vaultPrivateKey = vaultKP.secret();
-
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    },
   },
-  props: [
-    'balanceinfo',
-  ],
 };
 </script>
 

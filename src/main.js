@@ -74,12 +74,11 @@ function processContents(balances) {
       };
     }
   }
-
 // could be optimized by inserting every new register in a sorted list , TODO
   for (var key in final_object) {
     final_object[key].safes = quicksort(final_object[key].safes);
   }
-  return final_object
+  return final_object;
 }
 
 
@@ -118,6 +117,9 @@ const store = new VueX.Store({
     },
     setBalances(state, value) {
       state.balances = processContents(value);
+    },
+    setPersonalLumens(state, value){
+      state.balances['undefined'].safes[0].amount = value;
     },
     setVaultPublicKey(state, value) {
       state.newVault.publicKey = value;
