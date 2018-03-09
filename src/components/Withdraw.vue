@@ -4,7 +4,7 @@
     <div class='content'>
       <select v-model='symbol'>
       <option value='initial' disabled selected>Choose your token</option>
-      <option v-for='token in tokens' v-bind:value='token.value'>{{token.text}}</option>
+      <option v-for='token in tokens' v-if='token.text != "undefined"' v-bind:value='token.value'>{{token.text}}</option>
     </select>
     </div>
     <div class='container'></div>

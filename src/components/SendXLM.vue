@@ -97,9 +97,9 @@ export default {
   padding: 1rem;
   width: 60%;
   min-width: 597px;
-  height: 10rem;
-  max-height: 40rem;
-  min-height: 37rem;
+  height: 100%;
+  min-height: 29rem;
+  max-height: 32rem;
   margin: auto;
   width: 50%;
   height: 50%;
@@ -108,5 +108,15 @@ export default {
   rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px
   rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+}
+
+#textarea1 {
+  min-height: 7rem;
+  padding: 0;
+  margin: auto
+}
+
+.row {
+  margin: 0;
 }
 </style>
