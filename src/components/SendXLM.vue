@@ -1,30 +1,32 @@
 <template>
-<div id='SendXLM' class='sendcomps' v-show='$store.state.vaultExist'>
-  <input placeholder='Amount' v-model='amount' type='number' :disabled='xdrEnvelope != null'></input>
-  <input placeholder='Destination' v-model='destination' type='text' :disabled='xdrEnvelope != null'></input>
+<transition name='fade'>
+  <div id='SendXLM' class='sendcomps' v-show='$store.state.vaultExist'>
+    <input placeholder='Amount' v-model='amount' type='number' :disabled='xdrEnvelope != null'></input>
+    <input placeholder='Destination' v-model='destination' type='text' :disabled='xdrEnvelope != null'></input>
 
-  <div v-if='xdrEnvelope'>
-    <form class="col s12">
-      <label>Transaction to sign</label>
-      <div class="row">
-        <div class="input-field col m3">
-          <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+    <div v-if='xdrEnvelope'>
+      <form class="col s12">
+        <label>Transaction to sign</label>
+        <div class="row">
+          <div class="input-field col m3">
+            <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+          </div>
         </div>
+      </form>
+      <div>
+        <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'></input>
       </div>
-    </form>
-    <div>
-      <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'></input>
     </div>
-  </div>
 
-  <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
+    <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
     <i class="material-icons right">send</i> Create Transaction
   </a>
 
-  <a @click='submitTransaction()' v-else class="btn-large waves-effect light-blue darken-3">
+    <a @click='submitTransaction()' v-else class="btn-large waves-effect light-blue darken-3">
     <i class="material-icons right">send</i> Send XLM
   </a>
-</div>
+  </div>
+</transition>
 </template>
 
 <script>
@@ -35,7 +37,7 @@ const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
 const kp = StellarSdk.Keypair;
 
 export default {
-  name:'SendXLM',
+  name: 'SendXLM',
   data() {
     return {
       pk: this.$store.state.publicKey,
@@ -79,9 +81,9 @@ export default {
           const personalAccount = new StellarSdk.Account(this.$store.state.publicKey, sequence);
 
           const transaction = new StellarSdk.TransactionBuilder(personalAccount)
-          .addOperation(sendXLMOperation)
-          .addMemo(msg)
-          .build();
+            .addOperation(sendXLMOperation)
+            .addMemo(msg)
+            .build();
 
           this.xdrEnvelope = transaction.toEnvelope().toXDR().toString("base64");
         })
@@ -97,17 +99,15 @@ export default {
   padding: 1rem;
   width: 60%;
   min-width: 597px;
-  height: 100%;
-  min-height: 29rem;
-  max-height: 32rem;
+  /* height: 100%; */
+  /* min-height: 29rem; */
+  /* max-height: 32rem; */
   margin: auto;
   width: 50%;
-  height: 50%;
+  /* height: 50%; */
   background-color: white;
-  -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px
-  rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px
-  rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
 }
 
 #textarea1 {
@@ -118,5 +118,18 @@ export default {
 
 .row {
   margin: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity .5s;
+}
+
+.fade-enter,
+.fade-leave-to
+/* .fade-leave-active below version 2.1.8 */
+
+  {
+  opacity: 0;
 }
 </style>

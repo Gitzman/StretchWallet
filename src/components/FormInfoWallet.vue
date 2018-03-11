@@ -111,15 +111,16 @@ export default {
         }
         else{
           this.$store.commit('confirmVault', false);
+          this.$store.commit('setPersonalLumens', data.balances[0].balance)
         }
       })
-      .catch(err => { alert('Invalid Public Key')})
+      .catch(err => { Materialize.toast('Invalid Public Key', 4000) })
     },
   },
 };
 </script>
 
-<style>
+<style scoped>
 .row {
   display: flex;
 }

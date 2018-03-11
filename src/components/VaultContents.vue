@@ -7,7 +7,7 @@
           <div class="collapsible-header">
             <i class="material-icons">
               star
-            </i> Lumens {{$store.state.balances['undefined'].safes[0].amount}} XLM
+            </i> Lumens {{$store.state.balances['undefined']}} XLM
           </div>
         </li>
       </ul>
@@ -112,7 +112,7 @@ export default {
 };
 </script>
 
-<style>
+<style !scoped>
 .VaultTableComponent {
   margin: auto;
 }
@@ -146,7 +146,7 @@ tbody {
   width: 90%;
   min-width: 597px;
   margin: auto;
-  height: 30rem;
+  /* height: 30rem; */
   overflow-y: scroll;
   -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);

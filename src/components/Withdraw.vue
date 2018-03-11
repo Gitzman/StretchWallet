@@ -1,4 +1,5 @@
 <template>
+<transition name='fade'>
 <div class='withdrawcomp' v-show='$store.state.vaultExist'>
   <div class='inputs'>
     <div class='content'>
@@ -43,6 +44,7 @@
   </a>
 
 </div>
+</transition>
 </template>
 
 
@@ -108,10 +110,6 @@ export default {
       const safeAsset = new StellarSdk.Asset(this.symbol, safePublicKey)
       const storedAsset = new StellarSdk.Asset('XLM', null);
 
-      console.log('symbol: ', symbol);
-      console.log('safePublicKey: ', safePublicKey);
-      console.log('safeasset: ', safeAsset);
-
       const ops1 = {
         'source': this.$store.state.newVault.publicKey,
         'selling': safeAsset,
@@ -167,12 +165,12 @@ select {
   display: flex;
 }
 
-.contianer {
-  flex: 1;
+.container {
+  width: 1rem;
 }
 
 .content {
-  flex: 12
+  flex: 12;
 }
 
 .withdrawcomp {
@@ -180,14 +178,21 @@ select {
   padding: 1rem;
   width: 60%;
   min-width: 597px;
-  height: 15rem;
-  max-height: 50rem;
-  min-height: 45rem;
+  /* height: 15rem; */
+  /* max-height: 50rem; */
+  /* min-height: 45rem; */
   margin: auto;
   width: 50%;
-  height: 50%;
+  /* height: 50%; */
   background-color: white;
   -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
 }
 </style>

@@ -119,7 +119,7 @@ const store = new VueX.Store({
       state.balances = processContents(value);
     },
     setPersonalLumens(state, value){
-      state.balances['undefined'].safes[0].amount = value;
+      state.balances['undefined'] = value;
     },
     setVaultPublicKey(state, value) {
       state.newVault.publicKey = value;

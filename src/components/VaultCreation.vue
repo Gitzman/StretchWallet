@@ -1,7 +1,16 @@
 <template>
 <transition name="fade">
-  <div id='VaultCreation' v-if='$store.state.vaultExist === false' class='collapsible'>
-    <div class='beforeCreation' v-if='!startVaultCreation'>
+  <div id='VaultCreation' v-if='$store.state.vaultExist === false'>
+    <ul class="collapsiblelumen" data-collapsible="expandable">
+      <li>
+        <div class="collapsible-header">
+          <i class="material-icons">
+            star
+          </i> Lumens {{$store.state.balances['undefined']}} XLM
+        </div>
+      </li>
+    </ul>
+    <div class='beforeCreation collapsible' v-if='!startVaultCreation'>
       <h3>No Associated Vault</h3>
       <a class="btn-large waves-effect light-blue darken-3" @click='createVault()'>
         <i class="material-icons right">
@@ -10,7 +19,7 @@
         Create vault to public key
         </a>
     </div>
-    <div v-else>
+    <div v-else class='collapsible'>
       <div class="preloader-wrapper big active" v-if="xdrEnvelope===''">
         <div class="spinner-layer spinner-blue-only">
           <div class="circle-clipper left">
@@ -41,22 +50,38 @@
           <form class="col s12">
             <label>Transaction to sign</label>
             <div class="row">
-              <div class="input-field col m3">
+              <div class="input-field col">
                 <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
               </div>
             </div>
           </form>
         </div>
         <div class="row">
-          <div class="input-field col s6">
-            <input id="first_name" type="text" v-model='privateKey' class="validate">
-            <label for="first_name">[Optional] Secret to sign transaction</label>
+          <div class="input-field col s6 signingcomp">
+            <input id="signingkey" type="text" v-model='privateKey' class="validate">
+            <label for="signingkey">Secret to sign</label>
+            <a @click='submitTransaction()' v-if='creationStep === "button"' class="btn-large waves-effect light-blue darken-3">
+                <i class="material-icons right">send</i> Create Vault
+            </a>
+            <div class="preloader-wrapper big active" v-if='creationStep === "loader"'>
+              <div class="spinner-layer spinner-blue-only">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div>
+                <div class="gap-patch">
+                  <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+            </div>
+            <div v-if='creationStep === check'>
+              <i class='material-icons'>check</i>
+            </div>
           </div>
           <a @click='createVault()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
               <i class="material-icons right" >send</i> Create Transaction
-            </a>
-          <a @click='submitTransaction()' v-else class="btn-large waves-effect light-blue darken-3">
-              <i class="material-icons right">send</i> Create Vault
             </a>
         </div>
       </div>
@@ -95,6 +120,7 @@ export default {
       vaultPublicKey: '',
       vaultPrivateKey: '',
       secret: '',
+      creationStep: 'button',
     };
   },
   directives: {
@@ -113,12 +139,14 @@ export default {
       var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
       var privKP = kp.fromSecret(this.privateKey)
       transaction.sign(privKP);
-
+      this.creationStep = 'loader';
       server.submitTransaction(transaction)
         .then(data => {
-          alert("Success: " + data._links.transaction.href);
+          Materialize.toast('SUCCESS, Vault Created');
+          Materialize.toast(data._links.transaction.href);
+          this.creationStep = 'check'
         })
-        .catch(err => alert(err))
+        .catch(err => Materialize.toast('Invalid Secret', 4000))
 
     },
     createVault() {
@@ -193,7 +221,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .VaultTableComponent {
   margin: auto;
 }
@@ -223,22 +251,12 @@ tbody {
   width: 90%;
   margin: auto;
   min-width: 597px;
-  height: 70%;
-  overflow-y: scroll;
+  /* height: 33rem; */
   -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   background: rgb(250, 250, 250);
+  overflow: hidden;
 }
-
-/* .errorResponse { */
-
-/* background: white; */
-
-/* width: 60%; */
-
-/* margin: auto; */
-
-/* } */
 
 .vaultkey {
   overflow-x: scroll;
@@ -246,14 +264,15 @@ tbody {
 
 .keycontainer {
   display: flex;
-  text-align: center;
-  width: 730px;
   margin: auto;
+  width: 44rem;
 }
 
 #textarea1 {
-  min-height: 200px;
+  height: 100%;
+  padding: 0;
   color: black;
+  width: 80%;
   overflow-y: scroll;
 }
 
@@ -263,5 +282,40 @@ tbody {
 
 .vaultTitle {
   font-weight: 600;
+}
+
+.row {
+  display: flex;
+  margin: 0;
+  height: 12rem;
+  margin-bottom: 3rem;
+}
+
+.input-field {
+  width: 90%;
+  margin: auto;
+  height: 90%;
+  margin-bottom: 10rem;
+}
+
+.signingcomp {
+  margin-top: 3rem;
+}
+
+.collapsiblelumen {
+  width: 90%;
+  min-width: 597px;
+  margin: auto;
+  margin-bottom: 2rem;
+  overflow-y: scroll;
+  -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+}
+
+#toast-container {
+  top: auto !important;
+  right: auto !important;
+  bottom: 10%;
+  left:7%;
 }
 </style>

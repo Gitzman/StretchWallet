@@ -1,15 +1,8 @@
 <template>
+<transition name="fade">
 <div class='depositcomp' v-show='$store.state.vaultExist'>
-  <!-- <br>
-  <form action="#">
-    <p>
-      <input type="checkbox" class="filled-in" id="filled-in-box" checked="checked" />
-      <label for="filled-in-box">Create new token</label>
-    </p>
-  </form> -->
-
   <div class='row inputs'>
-    <div class="left-column input-field col s6">
+    <div class="column input-field col s6">
       <input list='tokens' placeholder='Token code' v-model='symbol' :disabled='xdrEnvelope != null'></input>
       <datalist id='tokens' :disabled='xdrEnvelope != null'>
         <option value='NEW: Create new token' />
@@ -19,7 +12,7 @@
       <input placeholder="Amount" type='number' v-model.number='amount' :disabled='xdrEnvelope != null'></input>
 
     </div>
-    <div class="right-column input-field col s6">
+    <div class="column input-field col s6">
       <input placeholder="Description" v-model='description' :disabled='xdrEnvelope != null'></input>
       <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input>
     </div>
@@ -45,6 +38,7 @@
     <i class="material-icons right">send</i> Deposit
   </a>
 </div>
+</transition>
 </template>
 
 
@@ -182,8 +176,6 @@ export default {
 
       const storeDescriptionOperation = StellarSdk.Operation.manageData(ops9);
 
-      console.log(ops1,ops2,ops3,ops4,ops5,ops6,ops7,ops8,ops9);
-
       server.loadAccount(this.$store.state.newVault.publicKey)
         .then(accountresp => {
 
@@ -221,7 +213,7 @@ export default {
   margin: 0;
 }
 
-.right-column {
+.column {
   margin: 0px;
 }
 
@@ -250,14 +242,21 @@ export default {
   padding: 1rem;
   width: 60%;
   min-width: 597px;
-  height: 15rem;
-  max-height: 50rem;
-  min-height: 45rem;
+  /* height: 15rem; */
+  /* max-height: 50rem; */
+  /* min-height: 45rem; */
   margin: auto;
   width: 50%;
-  height: 50%;
+  /* height: 50%; */
   background-color: white;
   -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
 }
 </style>
