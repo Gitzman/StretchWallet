@@ -10,17 +10,18 @@
 
   <div class='row inputs'>
     <div class="left-column input-field col s6">
-      <input list='tokens' placeholder='Token code' :disabled='xdrEnvelope != null'></input>
+      <input list='tokens' placeholder='Token code' v-model='symbol' :disabled='xdrEnvelope != null'></input>
       <datalist id='tokens' :disabled='xdrEnvelope != null'>
         <option value='NEW: Create new token' />
         <option v-for='asset in balances' :value='asset' v-if='asset != "undefined"'/>
       </datalist>
-      <input placeholder="Amount" type='number' v-model='amount' :disabled='xdrEnvelope != null'></input>
-      <input placeholder="Symbol ABC QWE" v-model='symbol' :disabled='xdrEnvelope != null'></input>
+      <input placeholder="Symbol ABC QWE" v-model='newSymbol' v-if='symbol === "NEW: Create new token"' :disabled='xdrEnvelope != null'></input>
+      <input placeholder="Amount" type='number' v-model.number='amount' :disabled='xdrEnvelope != null'></input>
+
     </div>
     <div class="right-column input-field col s6">
       <input placeholder="Description" v-model='description' :disabled='xdrEnvelope != null'></input>
-      <input placeholder="Denomination" v-model='denomination' :disabled='xdrEnvelope != null'></input>
+      <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input>
     </div>
   </div>
   <div v-if='xdrEnvelope'>
@@ -62,13 +63,14 @@ export default {
   data() {
     return {
       depositOld: false, //is true if the deposit is in the same field as an old safe box
-      amount: 500,
-      symbol: 'IGN',
-      description: 'new token ignacio',
-      denomination: 10,
+      amount: null,
+      symbol: null,
+      description: null,
+      denomination: null,
       vaultPrivateKey: null,
       userPrivateKey: null,
       xdrEnvelope: null,
+      newSymbol: null,
     };
   },
   computed: {
@@ -118,7 +120,7 @@ export default {
       const ops2 = {
         source: this.$store.state.publicKey,
         destination: safeKP.publicKey(),
-        startingBalance: this.amount + 1.5 + '',
+        startingBalance: (this.amount + 1.5) + '',
       };
 
       const issueAccountOperation = StellarSdk.Operation.createAccount(ops2);
@@ -180,18 +182,7 @@ export default {
 
       const storeDescriptionOperation = StellarSdk.Operation.manageData(ops9);
 
-      const operations = [
-        issueAccountOperation,
-        payTrustlineOperation,
-        trustIssuerOperation,
-        setAuthorityOperation,
-        trustUserOperation,
-        payUserOperation,
-        sellOfferOperation,
-        killSafeKeyOperation,
-        storeDescriptionOperation,
-      ];
-
+      console.log(ops1,ops2,ops3,ops4,ops5,ops6,ops7,ops8,ops9);
 
       server.loadAccount(this.$store.state.newVault.publicKey)
         .then(accountresp => {
@@ -202,8 +193,8 @@ export default {
 
           const vaultAccount = new StellarSdk.Account(this.$store.state.newVault.publicKey, sequence)
           const transaction = new StellarSdk.TransactionBuilder(vaultAccount)
-            .addOperation(issueAccountOperation)
             .addOperation(payTrustlineOperation)
+            .addOperation(issueAccountOperation)
             .addOperation(trustIssuerOperation)
             .addOperation(setAuthorityOperation)
             .addOperation(trustUserOperation)
@@ -214,9 +205,6 @@ export default {
             .addMemo(msg)
             .build()
 
-
-          // transaction.sign(kp.fromPublicKey(this.$store.state.newVault.publicKey));
-          // transaction.sign(kp.fromPublicKey(this.$store.state.publicKey));
           transaction.sign(safeKP);
           // create transaction to be signed in the stellar laboratory
           this.xdrEnvelope = transaction.toEnvelope().toXDR().toString("base64");
@@ -262,9 +250,9 @@ export default {
   padding: 1rem;
   width: 60%;
   min-width: 597px;
-  height: 10rem;
-  max-height: 40rem;
-  min-height: 37rem;
+  height: 15rem;
+  max-height: 50rem;
+  min-height: 45rem;
   margin: auto;
   width: 50%;
   height: 50%;

@@ -1,62 +1,62 @@
 <template>
-<transition name="fade">
-  <div id='VaultContents'>
-    <div v-if='$store.state.vaultExist'>
+<div id='VaultContents'>
+  <transition name="fade">
+    <div v-if='$store.state.vaultExist' >
       <ul class="collapsiblelumen" data-collapsible="expandable">
         <li>
           <div class="collapsible-header">
             <i class="material-icons">
               star
-            </i>
-            Lumens {{$store.state.balances['undefined'].safes[0].amount}} XLM
+            </i> Lumens {{$store.state.balances['undefined'].safes[0].amount}} XLM
           </div>
         </li>
       </ul>
       <div class='spacer'>
       </div>
-      <ul v-collapsible class="collapsible" data-collapsible="expandable">
-        <li v-for='asset in Object.keys($store.state.balances)' v-if='asset != "undefined"'>
-          <div class="collapsible-header">
-            <i class="material-icons">
+      <div>
+        <ul class="collapsible" v-if='Object.keys($store.state.balances).length > 1' data-collapsible="expandable">
+          <li v-for='asset in Object.keys($store.state.balances)' v-if='asset != "undefined"'>
+            <div class="collapsible-header">
+              <i class="material-icons">
               lock
             </i>{{calculateTotalBalance(asset)}} {{asset}}
-          </div>
+            </div>
 
-          <div class="collapsible-body">
-            <table class='VaultTableComponent highlight centered'>
-              <thead>
-                <tr>
-                  <th>Balance</th>
-                  <th>Limit</th>
-                  <th>Asset Type</th>
-                  <th>Asset Code</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{{calculateTotalBalance(asset)}}</td>
-                  <td>{{asset.limit}}</td>
-                  <td>{{asset.asset_type}}</td>
-                  <td>{{asset.asset_type}}</td>
-                  <td v-if='asset.asset_code'>{{asset.asset_code}}</td>
-                  <td v-else>Lumens</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </li>
-      </ul>
-    </div>
-
-    <VaultCreation />
-
-    <transition name="fade">
-      <div v-if='wrongPK === true' class='errorResponse'>
-        <h4>No account associated to this public key</h4>
+            <!-- <div class="collapsible-body">
+              <table class='VaultTableComponent highlight centered'>
+                <thead>
+                  <tr>
+                    <th>Balance</th>
+                    <th>Limit</th>
+                    <th>Asset Type</th>
+                    <th>Asset Code</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{{calculateTotalBalance(asset)}}</td>
+                    <td>{{asset.limit}}</td>
+                    <td>{{asset.asset_type}}</td>
+                    <td>{{asset.asset_type}}</td>
+                    <td v-if='asset.asset_code'>{{asset.asset_code}}</td>
+                    <td v-else>Lumens</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div> -->
+          </li>
+        </ul>
       </div>
-    </transition>
-  </div>
-</transition>
+    </div>
+    <VaultCreation v-else />
+  </transition>
+
+  <transition name="fade">
+    <div v-if='wrongPK === true' class='errorResponse'>
+      <h4>No account associated to this public key</h4>
+    </div>
+  </transition>
+</div>
 </template>
 
 <script>
@@ -143,7 +143,7 @@ tbody {
 }
 
 .collapsible {
-  width: 60%;
+  width: 90%;
   min-width: 597px;
   margin: auto;
   height: 30rem;
@@ -153,7 +153,7 @@ tbody {
 }
 
 .collapsiblelumen {
-  width: 60%;
+  width: 90%;
   min-width: 597px;
   margin: auto;
   overflow-y: scroll;
@@ -173,7 +173,7 @@ tbody {
 
 .errorResponse {
   /* background: white; */
-  width: 60%;
+  width: 90%;
   margin: auto;
 }
 

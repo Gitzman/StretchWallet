@@ -9,7 +9,7 @@
           <input id="icon_prefix" v-model="updatedKey" name="textfield" value="" type="text" class="validate">
           <label for="icon_prefix">Public Key, Starts with G</label>
         </div>
-        <a @click='getWalletInfo()'  class="btn-large waves-effect light-blue darken-3">
+        <a @click='getWalletInfo()' class="btn-large waves-effect light-blue darken-3">
           <i class="material-icons right">send</i> Send
         </a>
       </form>
@@ -91,6 +91,7 @@ export default {
   },
   methods: {
     getWalletInfo() {
+      this.$router.push('/');
       server.loadAccount(this.$store.state.publicKey)
       .then(data => {
         if (data.data_attr.hasOwnProperty('vault_account')) {
@@ -132,7 +133,7 @@ export default {
   margin: auto;
   margin-right: 1rem;
   margin-bottom: 0px;
-  flex: 10;
+  flex: 13;
 }
 
 .prefix {
@@ -170,7 +171,7 @@ export default {
 .formRow {
   display: flex;
   flex-direction: row;
-  flex: 4;
+  flex: 7;
   -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   height: 6rem;

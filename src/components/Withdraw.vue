@@ -2,14 +2,17 @@
 <div class='withdrawcomp' v-show='$store.state.vaultExist'>
   <div class='inputs'>
     <div class='content'>
-      <select v-model='symbol'>
+      <select v-model='symbol' :disabled='xdrEnvelope != null'>
       <option value='initial' disabled selected>Choose your token</option>
-      <option v-for='token in tokens' v-if='token.text != "undefined"' v-bind:value='token.value'>{{token.text}}</option>
+      <option v-for='token in tokens' v-if='token.text!="undefined"' v-bind:value='token.value'>
+        {{token.text}}
+      </option>
     </select>
     </div>
     <div class='container'></div>
     <div class='content'>
-      <input placeholder='Amount' type='number' v-model='amount' :disabled='xdrEnvelope != null'></input>
+      <input placeholder='Amount' type='number' v-model.number='amount' :disabled='xdrEnvelope != null'>
+      </input>
     </div>
   </div>
 
@@ -18,13 +21,16 @@
       <label>Transaction to sign</label>
       <div class="row">
         <div class="input-field col m3">
-          <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+          <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'>
+          </textarea>
         </div>
       </div>
     </form>
     <div>
-      <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'></input>
-      <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'></input>
+      <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'>
+      </input>
+      <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'>
+      </input>
     </div>
   </div>
 
@@ -92,7 +98,7 @@ export default {
         .then(data => {
           alert("Success: " + data._links.transaction.href);
         })
-        .catch(err => alert(err))
+        .catch(err => console.log(err))
 
     },
     createTransaction() {
@@ -110,8 +116,8 @@ export default {
         'source': this.$store.state.newVault.publicKey,
         'selling': safeAsset,
         'buying': storedAsset,
-        'amount': (this.amount / 10) +'',
-        'price': 10
+        'amount': (this.amount / 1) + '',
+        'price': 1
       };
 
       var withdrawOffer = StellarSdk.Operation.manageOffer(ops1);
@@ -119,7 +125,7 @@ export default {
       const ops2 = {
         'source': this.$store.state.newVault.publicKey,
         'destination': this.$store.state.publicKey,
-        'amount': this.amount +'',
+        'amount': this.amount + '',
         'asset': new StellarSdk.Asset('XLM', null)
       };
 
@@ -174,9 +180,9 @@ select {
   padding: 1rem;
   width: 60%;
   min-width: 597px;
-  height: 10rem;
-  max-height: 40rem;
-  min-height: 37rem;
+  height: 15rem;
+  max-height: 50rem;
+  min-height: 45rem;
   margin: auto;
   width: 50%;
   height: 50%;
