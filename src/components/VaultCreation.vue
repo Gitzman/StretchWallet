@@ -76,7 +76,7 @@
                 </div>
               </div>
             </div>
-            <div v-if='creationStep === check'>
+            <div v-if='creationStep === "check"'>
               <i class='material-icons'>check</i>
             </div>
           </div>

@@ -153,7 +153,7 @@ tbody {
 }
 
 .collapsiblelumen {
-  width: 90%;
+  width: 60%;
   min-width: 597px;
   margin: auto;
   overflow-y: scroll;

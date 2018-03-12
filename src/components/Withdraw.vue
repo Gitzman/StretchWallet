@@ -1,49 +1,49 @@
 <template>
 <transition name='fade'>
-<div class='withdrawcomp' v-show='$store.state.vaultExist'>
-  <div class='inputs'>
-    <div class='content'>
-      <select v-model='symbol' :disabled='xdrEnvelope != null'>
+  <div class='withdrawcomp' v-show='$store.state.vaultExist'>
+    <div class='inputs'>
+      <div class='content'>
+        <select v-model='symbol' :disabled='xdrEnvelope != null'>
       <option value='initial' disabled selected>Choose your token</option>
       <option v-for='token in tokens' v-if='token.text!="undefined"' v-bind:value='token.value'>
         {{token.text}}
       </option>
     </select>
-    </div>
-    <div class='container'></div>
-    <div class='content'>
-      <input placeholder='Amount' type='number' v-model.number='amount' :disabled='xdrEnvelope != null'>
-      </input>
-    </div>
-  </div>
-
-  <div v-if='xdrEnvelope'>
-    <form class="col s12">
-      <label>Transaction to sign</label>
-      <div class="row">
-        <div class="input-field col m3">
-          <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'>
-          </textarea>
-        </div>
       </div>
-    </form>
-    <div>
-      <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'>
-      </input>
-      <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'>
-      </input>
+      <div class='container'></div>
+      <div class='content'>
+        <input placeholder='Amount' type='number' v-model.number='amount' :disabled='xdrEnvelope != null'>
+        </input>
+      </div>
     </div>
-  </div>
 
-  <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
+    <div v-if='xdrEnvelope'>
+      <form class="col s12">
+        <label>Transaction to sign</label>
+        <div class="row">
+          <div class="input-field col m3">
+            <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'>
+          </textarea>
+          </div>
+        </div>
+      </form>
+      <div>
+        <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'>
+        </input>
+        <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'>
+        </input>
+      </div>
+    </div>
+
+    <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
     <i class="material-icons right">send</i> Create Transaction
   </a>
 
-  <a @click='submitTransaction()' v-else class="btn-large waves-effect light-blue darken-3">
+    <a @click='submitTransaction()' v-else class="btn-large waves-effect light-blue darken-3">
     <i class="material-icons right">send</i> Withdraw
   </a>
 
-</div>
+  </div>
 </transition>
 </template>
 
@@ -63,9 +63,9 @@ export default {
   data() {
     return {
       depositOld: false, //is true if the deposit is in the same field as an old safe box
-      amount: 500,
-      symbol: 'SAFEDEMO',
-      denomination: 10,
+      amount: null,
+      symbol: null,
+      denomination: null,
       vaultPrivateKey: null,
       userPrivateKey: null,
       xdrEnvelope: null,
@@ -109,43 +109,110 @@ export default {
       const safePublicKey = this.$store.state.balances[this.symbol].safes[0].issuer;
       const safeAsset = new StellarSdk.Asset(this.symbol, safePublicKey)
       const storedAsset = new StellarSdk.Asset('XLM', null);
+      const balances = this.$store.state.balances;
+      const vaultPublicKey = this.$store.state.newVault.publicKey;
+      const personalPublicKey = this.$store.state.publicKey;
 
-      const ops1 = {
-        'source': this.$store.state.newVault.publicKey,
-        'selling': safeAsset,
-        'buying': storedAsset,
-        'amount': (this.amount / 1) + '',
-        'price': 1
-      };
+      function preTransaction(balances, symbol, amount) {
+        var arrNeededSafes = [];
+        for (var i = 0; i < balances[symbol].safes.length && amount > 0; i++) {
+          if (amount > balances[symbol].safes[i].amount) {
+            if(balances[symbol].safes[i].amount > 0) {
+              arrNeededSafes.push([balances[symbol].safes[i].issuer, balances[symbol].safes[i].amount]);
+              amount -= balances[symbol].safes[i].amount
+            }
+          } else {
+            arrNeededSafes.push([balances[symbol].safes[i].issuer, amount])
+            amount = 0
+          }
+        }
+        console.log('amounts with safes keys: ', arrNeededSafes);
+        return arrNeededSafes;
+      }
 
-      var withdrawOffer = StellarSdk.Operation.manageOffer(ops1);
+      function generateOperationsData(balances, symbol, amount, vaultPublicKey) {
+        var safesAmount = preTransaction(balances, symbol, amount)
+        var arrOperationsData = []
+        for (var i = 0; i < safesAmount.length; i++) {
+          const safePublicKey = safesAmount[i][0];
+          const safeAsset = new StellarSdk.Asset(symbol, safePublicKey)
+          const storedAsset = new StellarSdk.Asset('XLM', null);
 
-      const ops2 = {
-        'source': this.$store.state.newVault.publicKey,
-        'destination': this.$store.state.publicKey,
-        'amount': this.amount + '',
-        'asset': new StellarSdk.Asset('XLM', null)
-      };
+          const ops1 = {
+            'source': vaultPublicKey,
+            'selling': safeAsset,
+            'buying': storedAsset,
+            'amount': (safesAmount[i][1] / 1) + '',
+            'price': 1,
+          };
+          arrOperationsData.push(ops1);
+        }
+        console.log('generatedOperationsData:', arrOperationsData);
+        return arrOperationsData;
+      }
 
-      var payTransactionWallet = StellarSdk.Operation.payment(ops2);
 
-      server.loadAccount(this.$store.state.newVault.publicKey)
-        .then(accountresp => {
+      function generateOperations(balances, symbol, amount, vaultPublicKey) {
+        var ops = generateOperationsData(balances, symbol, amount, vaultPublicKey);
+        var arrWithdrawOffers = [];
 
-          const sequence = accountresp.sequenceNumber() + '';
+        for (var i = 0; i < ops.length; i++) {
+          var withdrawOffer = StellarSdk.Operation.manageOffer(ops[i]);
+          arrWithdrawOffers.push(withdrawOffer);
+        }
+        return arrWithdrawOffers;
+      }
 
-          const msg = new StellarSdk.Memo('text', 'Withdrawing from safe');
+      function createEnvelope(balances, symbol, amount, vaultPublicKey, personalKey) {
+        return new Promise(function(resolve, reject){
+          var withdrawOperations = generateOperations(balances, symbol, amount, vaultPublicKey);
 
-          const vaultAccount = new StellarSdk.Account(this.$store.state.newVault.publicKey, sequence)
-          var transaction = new StellarSdk.TransactionBuilder(vaultAccount)
-            .addOperation(withdrawOffer)
-            .addOperation(payTransactionWallet)
-            .addMemo(msg)
-            .build();
+          const safePublicKey = balances[symbol].safes[0].issuer;
+          const safeAsset = new StellarSdk.Asset(symbol, safePublicKey)
+          const storedAsset = new StellarSdk.Asset('XLM', null);
 
-          this.xdrEnvelope = transaction.toEnvelope().toXDR().toString("base64");
-        })
-        .catch(err => console.log('error:', err))
+          // operation data to return all the lumens from the vault to the personal account
+          const ops2 = {
+            'source': vaultPublicKey,
+            'destination': personalKey,
+            'amount': amount + '',
+            'asset': new StellarSdk.Asset('XLM', null)
+          };
+
+          var payTransactionWallet = StellarSdk.Operation.payment(ops2);
+
+          // start the creation of the transaction and add the withdraw operations
+          server.loadAccount(vaultPublicKey)
+            .then(accountresp => {
+
+              const sequence = accountresp.sequenceNumber() + '';
+
+              const msg = new StellarSdk.Memo('text', 'Withdrawing from safe');
+
+              const vaultAccount = new StellarSdk.Account(vaultPublicKey, sequence)
+              var transaction = new StellarSdk.TransactionBuilder(vaultAccount)
+
+              for (var i = 0; i < withdrawOperations.length; i++) {
+                const currentOp = withdrawOperations[i];
+                transaction = transaction.addOperation(currentOp);
+              }
+
+              transaction = transaction.addOperation(payTransactionWallet)
+                .addMemo(msg)
+                .build();
+              var xdrEnvelope = transaction.toEnvelope().toXDR().toString("base64");
+              resolve( xdrEnvelope );
+              // return xdrEnvelope;
+
+            })
+            .catch(err => {
+              console.log('error:', err);
+              return 'error'
+            });
+        });
+      }
+      createEnvelope(balances, symbol, this.amount, vaultPublicKey, personalPublicKey)
+      .then( data =>  this.xdrEnvelope = data )
     },
   }
 };
@@ -189,10 +256,16 @@ select {
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity .5s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+
+.fade-enter,
+.fade-leave-to
+/* .fade-leave-active below version 2.1.8 */
+
+  {
   opacity: 0;
 }
 </style>
