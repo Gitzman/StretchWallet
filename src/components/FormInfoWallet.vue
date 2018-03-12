@@ -16,7 +16,6 @@
       <div class='container'></div>
     </div>
   </div>
-  <!-- <Error :message="'PublicStartsWithG'" :valid='startsWithG'></Error> -->
   <div v-if='$store.state.vaultExist === true' class="row tabscomp blue-text">
     <div class="col tabscomp1 s12" style="z-index:1">
       <ul v-tabs class="tabs tabs-fixed-width">
@@ -46,7 +45,7 @@ import StellarSdk from 'stellar-sdk';
 import VaultCreation from './VaultCreation';
 import VaultContents from './VaultContents';
 import Deposit from './Deposit.vue';
-import Error from './Error';
+// import Error from './Error';
 
 StellarSdk.Network.useTestNetwork();
 const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
@@ -65,7 +64,6 @@ export default {
     },
   },
   components: {
-    Error,
     VaultContents,
     Deposit,
     VaultCreation,
@@ -106,7 +104,7 @@ export default {
             this.$store.commit('setPersonalLumens',  data.balances[0].balance)
           })
           .catch(err => {
-            alert(err + 'The vault account associated to your account is invalid');
+            Materialize.toast('The vault account associated to your account is invalid');
           })
           return null //required by javacript to return something
         }
