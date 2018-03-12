@@ -4,11 +4,11 @@
     <div class='inputs'>
       <div class='content'>
         <select v-model='symbol' :disabled='xdrEnvelope != null'>
-      <option value='initial' disabled selected>Choose your token</option>
-      <option v-for='token in tokens' v-if='token.text!="undefined"' v-bind:value='token.value'>
-        {{token.text}}
-      </option>
-    </select>
+          <option value='initial' disabled selected>Choose your token</option>
+          <option v-for='token in tokens' v-if='token.text!="undefined"' v-bind:value='token.value'>
+            {{token.text}}
+          </option>
+        </select>
       </div>
       <div class='container'></div>
       <div class='content'>
@@ -17,32 +17,49 @@
       </div>
     </div>
 
-    <div v-if='xdrEnvelope'>
-      <form class="col s12">
-        <label>Transaction to sign</label>
-        <div class="row">
-          <div class="input-field col m3">
-            <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'>
-          </textarea>
+    <transition name='fade'>
+      <div v-if='xdrEnvelope'>
+        <form class="col s12">
+          <label>Transaction to sign</label>
+          <div class="row xdrEnvelope">
+            <div class="input-field col m3 coltextarea">
+              <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'>
+              </textarea>
+            </div>
           </div>
+        </form>
+        <div>
+          <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'>
+          </input>
+          <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'>
+          </input>
         </div>
-      </form>
-      <div>
-        <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'>
-        </input>
-        <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'>
-        </input>
       </div>
-    </div>
+    </transition>
 
     <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
-    <i class="material-icons right">send</i> Create Transaction
-  </a>
+      <i class="material-icons right">send</i> Create Transaction
+    </a>
 
-    <a @click='submitTransaction()' v-else class="btn-large waves-effect light-blue darken-3">
-    <i class="material-icons right">send</i> Withdraw
-  </a>
-
+    <a @click='submitTransaction()' v-if='xdrEnvelope != null && withdrawStage == "button"' class="btn-large waves-effect light-blue darken-3">
+      <i class="material-icons right">send</i> Withdraw
+    </a>
+    <div class="preloader-wrapper big active" v-if='withdrawStage === "loader"'>
+      <div class="spinner-layer spinner-blue-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div>
+        <div class="gap-patch">
+          <div class="circle"></div>
+        </div>
+        <div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+    </div>
+    <div v-if='withdrawStage === "check"'>
+      <i class='material-icons'>check</i>
+    </div>
   </div>
 </transition>
 </template>
@@ -69,6 +86,7 @@ export default {
       vaultPrivateKey: null,
       userPrivateKey: null,
       xdrEnvelope: null,
+      withdrawStage: 'button',
     };
   },
   computed: {
@@ -91,6 +109,7 @@ export default {
   mounted() {},
   methods: {
     submitTransaction() {
+      this.withdrawStage = 'loader';
       var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
       var privKP = kp.fromSecret(this.userPrivateKey);
       var vaultprivKP = kp.fromSecret(this.vaultPrivateKey);
@@ -98,7 +117,10 @@ export default {
       transaction.sign(vaultprivKP);
       server.submitTransaction(transaction)
         .then(data => {
-          alert("Success: " + data._links.transaction.href);
+          Materialize.toast("SUCCESS: Withdrawal Complete");
+          Materialize.toast(data._links.transaction.href);
+          this.withdrawStage = 'check'
+
         })
         .catch(err => console.log(err))
 
@@ -117,7 +139,7 @@ export default {
         var arrNeededSafes = [];
         for (var i = 0; i < balances[symbol].safes.length && amount > 0; i++) {
           if (amount > balances[symbol].safes[i].amount) {
-            if(balances[symbol].safes[i].amount > 0) {
+            if (balances[symbol].safes[i].amount > 0) {
               arrNeededSafes.push([balances[symbol].safes[i].issuer, balances[symbol].safes[i].amount]);
               amount -= balances[symbol].safes[i].amount
             }
@@ -164,7 +186,7 @@ export default {
       }
 
       function createEnvelope(balances, symbol, amount, vaultPublicKey, personalKey) {
-        return new Promise(function(resolve, reject){
+        return new Promise(function(resolve, reject) {
           var withdrawOperations = generateOperations(balances, symbol, amount, vaultPublicKey);
 
           const safePublicKey = balances[symbol].safes[0].issuer;
@@ -201,7 +223,7 @@ export default {
                 .addMemo(msg)
                 .build();
               var xdrEnvelope = transaction.toEnvelope().toXDR().toString("base64");
-              resolve( xdrEnvelope );
+              resolve(xdrEnvelope);
               // return xdrEnvelope;
 
             })
@@ -212,7 +234,7 @@ export default {
         });
       }
       createEnvelope(balances, symbol, this.amount, vaultPublicKey, personalPublicKey)
-      .then( data =>  this.xdrEnvelope = data )
+        .then(data => this.xdrEnvelope = data)
     },
   }
 };
@@ -237,8 +259,19 @@ select {
 }
 
 .content {
-  flex: 12;
+  flex: 1;
 }
+
+.coltextarea {
+  margin: auto;
+  width: 77% !important;
+}
+
+.xdrEnvelope {
+  display: flex;
+  width: 100%;
+}
+
 
 .withdrawcomp {
   display: block;

@@ -1,43 +1,59 @@
 <template>
 <transition name="fade">
-<div class='depositcomp' v-show='$store.state.vaultExist'>
-  <div class='row inputs'>
-    <div class="column input-field col s6">
-      <input list='tokens' placeholder='Token code' v-model='symbol' :disabled='xdrEnvelope != null'></input>
-      <datalist id='tokens' :disabled='xdrEnvelope != null'>
-        <option value='NEW: Create new token' />
-        <option v-for='asset in balances' :value='asset' v-if='asset != "undefined"'/>
-      </datalist>
-      <input placeholder="Symbol ABC QWE" v-model='newSymbol' v-if='symbol === "NEW: Create new token"' :disabled='xdrEnvelope != null'></input>
-      <input placeholder="Amount" type='number' v-model.number='amount' :disabled='xdrEnvelope != null'></input>
+  <div class='depositcomp' v-show='$store.state.vaultExist'>
+    <div class='row inputs'>
+      <div class="column input-field col s6">
+        <input list='tokens' placeholder='Token code' v-model='symbol' :disabled='xdrEnvelope != null'></input>
+        <datalist id='tokens' :disabled='xdrEnvelope != null'>
+          <option value='NEW: Create new token' />
+          <option v-for='asset in balances' :value='asset' v-if='asset != "undefined"'/>
+        </datalist>
+        <input placeholder="Symbol ABC QWE" v-model='newSymbol' v-if='symbol === "NEW: Create new token"' :disabled='xdrEnvelope != null'></input>
+        <input placeholder="Amount" type='number' v-model.number='amount' :disabled='xdrEnvelope != null'></input>
 
+      </div>
+      <div class="column input-field col s6">
+        <input placeholder="Description" v-model='description' :disabled='xdrEnvelope != null'></input>
+        <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input>
+      </div>
     </div>
-    <div class="column input-field col s6">
-      <input placeholder="Description" v-model='description' :disabled='xdrEnvelope != null'></input>
-      <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input>
+    <div v-if='xdrEnvelope'>
+      <form class="col s12">
+        <label>Transaction to sign</label>
+        <div class="row xdrEnvelope">
+          <div class="input-field col m3 coltextarea">
+            <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+          </div>
+        </div>
+      </form>
+      <div>
+        <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'></input>
+        <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'></input>
+      </div>
     </div>
-  </div>
-  <div v-if='xdrEnvelope'>
-    <form class="col s12">
-      <label>Transaction to sign</label>
-      <div class="row">
-        <div class="input-field col m3">
-          <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+    <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
+      <i class="material-icons right">send</i> Create Transaction
+    </a>
+    <a @click='submitTransaction()' v-if='xdrEnvelope != null && depositStage == "button"' class="btn-large waves-effect light-blue darken-3">
+      <i class="material-icons right">send</i> Deposit
+    </a>
+    <div class="preloader-wrapper big active" v-if='depositStage === "loader"'>
+      <div class="spinner-layer spinner-blue-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div>
+        <div class="gap-patch">
+          <div class="circle"></div>
+        </div>
+        <div class="circle-clipper right">
+          <div class="circle"></div>
         </div>
       </div>
-    </form>
-    <div>
-      <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'></input>
-      <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'></input>
+    </div>
+    <div v-if='depositStage === "check"'>
+      <i class='material-icons'>check</i>
     </div>
   </div>
-  <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
-    <i class="material-icons right">send</i> Create Transaction
-  </a>
-  <a @click='submitTransaction()' v-else class="btn-large waves-effect light-blue darken-3">
-    <i class="material-icons right">send</i> Deposit
-  </a>
-</div>
 </transition>
 </template>
 
@@ -65,6 +81,7 @@ export default {
       userPrivateKey: null,
       xdrEnvelope: null,
       newSymbol: null,
+      depositStage: "button",
     };
   },
   computed: {
@@ -85,6 +102,7 @@ export default {
   },
   methods: {
     submitTransaction() {
+      this.depositStage = 'loader';
       var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
       var privKP = kp.fromSecret(this.userPrivateKey);
       var vaultprivKP = kp.fromSecret(this.vaultPrivateKey);
@@ -92,7 +110,9 @@ export default {
       transaction.sign(vaultprivKP);
       server.submitTransaction(transaction)
         .then(data => {
-          alert("Success: " + data._links.transaction.href);
+          Materialize.toast("SUCCESS, Deposit Complete");
+          Materialize.toast(data._links.transaction.href);
+          this.depositStage = 'check'
         })
         .catch(err => alert(err))
 
@@ -253,10 +273,26 @@ export default {
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity .5s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+
+.fade-enter,
+.fade-leave-to
+/* .fade-leave-active below version 2.1.8 */
+
+  {
   opacity: 0;
+}
+
+.xdrEnvelope {
+  display: flex;
+  width: 100%;
+}
+
+.coltextarea {
+  margin: auto;
+  width: 77% !important;
 }
 </style>

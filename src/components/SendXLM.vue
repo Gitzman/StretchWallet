@@ -7,8 +7,8 @@
     <div v-if='xdrEnvelope'>
       <form class="col s12">
         <label>Transaction to sign</label>
-        <div class="row">
-          <div class="input-field col m3">
+        <div class="row xdrEnvelope">
+          <div class="input-field col m3 coltextarea">
             <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
           </div>
         </div>
@@ -19,12 +19,28 @@
     </div>
 
     <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
-    <i class="material-icons right">send</i> Create Transaction
-  </a>
+      <i class="material-icons right">send</i> Create Transaction
+    </a>
 
-    <a @click='submitTransaction()' v-else class="btn-large waves-effect light-blue darken-3">
-    <i class="material-icons right">send</i> Send XLM
-  </a>
+    <a @click='submitTransaction()' v-if='xdrEnvelope != null && sendingStage == "button"' class="btn-large waves-effect light-blue darken-3">
+      <i class="material-icons right">send</i> Send XLM
+    </a>
+    <div class="preloader-wrapper big active" v-if='sendingStage === "loader"'>
+      <div class="spinner-layer spinner-blue-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div>
+        <div class="gap-patch">
+          <div class="circle"></div>
+        </div>
+        <div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+    </div>
+    <div v-if='sendingStage === "check"'>
+      <i class='material-icons'>check</i>
+    </div>
   </div>
 </transition>
 </template>
@@ -45,18 +61,21 @@ export default {
       xdrEnvelope: null,
       destination: null,
       userPrivateKey: null,
-      amount: null
+      amount: null,
+      sendingStage: 'button',
     };
   },
   methods: {
     submitTransaction() {
+      this.sendingStage = 'loader';
       var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
       var privKP = kp.fromSecret(this.userPrivateKey);
       transaction.sign(privKP);
       server.submitTransaction(transaction)
         .then(data => {
-          alert('Success:' + data._links.transaction.href);
-          console.log(data);
+          Materialize.toast('SUCCESS: XLM Transfer Complete');
+          Materialize.toast( data._links.transaction.href);
+          this.sendingStage = 'check';
         })
         .catch(err => alert(err))
     },
@@ -118,6 +137,16 @@ export default {
 
 .row {
   margin: 0;
+}
+
+.xdrEnvelope {
+  display: flex;
+  width: 100%;
+}
+
+.coltextarea {
+  margin: auto;
+  width: 77% !important;
 }
 
 .fade-enter-active,

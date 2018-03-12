@@ -18,7 +18,7 @@
   </div>
   <!-- <Error :message="'PublicStartsWithG'" :valid='startsWithG'></Error> -->
   <div v-if='$store.state.vaultExist === true' class="row tabscomp blue-text">
-    <div class="col tabscomp1 s12">
+    <div class="col tabscomp1 s12" style="z-index:1">
       <ul v-tabs class="tabs tabs-fixed-width">
         <li class="tab col s3">
           <router-link to='/' class='statustab active'>Contents</router-link>
@@ -32,6 +32,7 @@
         <li class="tab col s3">
           <router-link to='/send' class='statustab'>Send XLM</router-link>
         </li>
+        <div class="indicator #337ab7"></div>
       </ul>
     </div>
   </div>
@@ -243,12 +244,19 @@ export default {
   padding: 0 !important;
 }
 
-.tabs .indicator {
+
+.indicator {
   background-color: #337ab7;
   color: #337ab7;
 }
 
 .statustab {
   color: #337ab7 !important;
+}
+
+.tabs .indicator {
+    background-color: #337ab7;
+    color: #337ab7 !important;
+
 }
 </style>
