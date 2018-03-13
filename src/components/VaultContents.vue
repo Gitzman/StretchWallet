@@ -1,29 +1,28 @@
 <template>
-<transition name="fade">
   <div id='VaultContents'>
-    <transition name="fade">
-      <div v-if='$store.state.vaultExist'>
-        <ul class="collapsiblelumen" data-collapsible="expandable">
-          <li>
-            <div class="collapsible-header">
-              <i class="material-icons">
+    <transition name='fade'>
+    <div v-if='$store.state.vaultExist'>
+      <ul class="collapsiblelumen" data-collapsible="expandable">
+        <li>
+          <div class="collapsible-header">
+            <i class="material-icons">
               star
             </i> Lumens {{$store.state.balances['undefined']}} XLM
-            </div>
-          </li>
-        </ul>
-        <div class='spacer'>
-        </div>
-        <div>
-          <ul class="collapsiblelumen" v-if='Object.keys($store.state.balances).length > 1' data-collapsible="expandable">
-            <li v-for='asset in Object.keys($store.state.balances)' v-if='asset != "undefined"'>
-              <div class="collapsible-header">
-                <i class="material-icons">
+          </div>
+        </li>
+      </ul>
+      <div class='spacer'>
+      </div>
+      <div>
+        <ul class="collapsiblelumen" v-if='Object.keys($store.state.balances).length > 1' data-collapsible="expandable">
+          <li v-for='asset in Object.keys($store.state.balances)' v-if='asset != "undefined"'>
+            <div class="collapsible-header">
+              <i class="material-icons">
               lock
             </i>{{calculateTotalBalance(asset)}} {{asset}}
-              </div>
+            </div>
 
-              <!-- <div class="collapsible-body">
+            <!-- <div class="collapsible-body">
               <table class='VaultTableComponent highlight centered'>
                 <thead>
                   <tr>
@@ -45,20 +44,16 @@
                 </tbody>
               </table>
             </div> -->
-            </li>
-          </ul>
-        </div>
+          </li>
+        </ul>
       </div>
-      <VaultCreation v-else />
-    </transition>
-
-    <transition name="fade">
-      <div v-if='wrongPK === true' class='errorResponse'>
-        <h4>No account associated to this public key</h4>
-      </div>
-    </transition>
+    </div>
+    <VaultCreation v-else />
+  </transition>
+    <div v-if='wrongPK === true' class='errorResponse'>
+      <h4>No account associated to this public key</h4>
+    </div>
   </div>
-</transition>
 </template>
 
 <script>
@@ -108,6 +103,7 @@ export default {
       for (var i = 0; i < balances[tokencode].safes.length; i++) {
         counter += balances[tokencode].safes[i].amount;
       }
+      document.getElementById('contentstab').click();
       return counter;
     },
   },
@@ -121,7 +117,7 @@ export default {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.5s;
+  transition: opacity .5s;
 }
 
 .fade-enter,

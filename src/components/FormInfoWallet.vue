@@ -20,7 +20,7 @@
     <div class="col tabscomp1 s12" style="z-index:1">
       <ul v-tabs class="tabs tabs-fixed-width">
         <li class="tab col s3">
-          <router-link to='/' class='statustab active'>Contents</router-link>
+          <router-link to='/' id='contentstab' class='statustab active'>Contents</router-link>
         </li>
         <li class="tab col s3">
           <router-link to='/deposit' class='statustab'>Deposit</router-link>
@@ -117,6 +117,7 @@ export default {
     },
   },
 };
+
 </script>
 
 <style scoped>
