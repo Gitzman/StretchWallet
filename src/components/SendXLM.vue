@@ -38,8 +38,8 @@
         </div>
       </div>
     </div>
-    <div v-if='sendingStage === "check"'>
-      <i class='material-icons'>check</i>
+    <div v-if='sendingStage === "check" || sendingStage === "close"'>
+      <i class='material-icons'>{{sendingStage}}</i>
     </div>
   </div>
 </transition>
@@ -47,9 +47,7 @@
 
 <script>
 import StellarSdk from 'stellar-sdk';
-StellarSdk.Network.useTestNetwork();
 
-const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
 const kp = StellarSdk.Keypair;
 
 export default {
@@ -67,19 +65,31 @@ export default {
   },
   methods: {
     submitTransaction() {
-      this.sendingStage = 'loader';
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
+      if (this.$store.state.networkURL === 'https://horizon.stellar.org') {
+        StellarSdk.Network.usePublicNetwork();
+      } else {
+        StellarSdk.Network.useTestNetwork();
+      }
       var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
       var privKP = kp.fromSecret(this.userPrivateKey);
       transaction.sign(privKP);
+      this.sendingStage = 'loader';
       server.submitTransaction(transaction)
         .then(data => {
           Materialize.toast('SUCCESS: XLM Transfer Complete');
           Materialize.toast( data._links.transaction.href);
           this.sendingStage = 'check';
+          this.$router.push('/');
         })
-        .catch(err => alert(err))
+        .catch(err => {
+          Materialize.toast('FAILURE, Not possible to send XLM');
+          this.sendingStage = 'close'
+          this.$router.push('/');
+        })
     },
     createTransaction() {
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
       const ops = {
         destination: this.destination,
         asset: new StellarSdk.Asset('XLM', null),

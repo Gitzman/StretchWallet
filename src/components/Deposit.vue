@@ -14,7 +14,7 @@
       </div>
       <div class="column input-field col s6">
         <input placeholder="Description" v-model='description' :disabled='xdrEnvelope != null'></input>
-        <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input>
+        <!-- <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input> -->
       </div>
     </div>
     <div v-if='xdrEnvelope'>
@@ -50,8 +50,8 @@
         </div>
       </div>
     </div>
-    <div v-if='depositStage === "check"'>
-      <i class='material-icons'>check</i>
+    <div v-if='depositStage === "check" || depositStage === "close"'>
+      <i class='material-icons'>{{depositStage}}</i>
     </div>
   </div>
 </transition>
@@ -63,9 +63,8 @@
 import jquery from 'jquery';
 import StellarSdk from 'stellar-sdk';
 
-StellarSdk.Network.useTestNetwork();
+// StellarSdk.Network.useTestNetwork();
 
-const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
 const kp = StellarSdk.Keypair;
 
 export default {
@@ -76,7 +75,7 @@ export default {
       amount: null,
       symbol: null,
       description: null,
-      denomination: null,
+      denomination: 1,
       vaultPrivateKey: null,
       userPrivateKey: null,
       xdrEnvelope: null,
@@ -102,22 +101,34 @@ export default {
   },
   methods: {
     submitTransaction() {
-      this.depositStage = 'loader';
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
+      if (this.$store.state.networkURL === 'https://horizon.stellar.org') {
+        StellarSdk.Network.usePublicNetwork();
+      } else {
+        StellarSdk.Network.useTestNetwork();
+      }
       var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
       var privKP = kp.fromSecret(this.userPrivateKey);
       var vaultprivKP = kp.fromSecret(this.vaultPrivateKey);
       transaction.sign(privKP);
       transaction.sign(vaultprivKP);
+      this.depositStage = 'loader';
       server.submitTransaction(transaction)
         .then(data => {
           Materialize.toast("SUCCESS, Deposit Complete");
           Materialize.toast(data._links.transaction.href);
           this.depositStage = 'check'
+          this.$router.push('/')
         })
-        .catch(err => alert(err))
-
+        .catch(err => {
+          Materialize.toast('FAILURE, Not possible to deposit');
+          this.depositStage = 'close';
+          this.$router.push('/')
+          console.log(err);
+        })
     },
     createTransaction() {
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
       const safeKP = kp.random();
       const storedAsset = new StellarSdk.Asset('XLM', null);
       const safeAsset = new StellarSdk.Asset(this.symbol, safeKP.publicKey());

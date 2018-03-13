@@ -95,9 +95,8 @@ import axios from 'axios';
 import jquery from 'jquery';
 import material from 'materialize-css';
 import StellarSdk from 'stellar-sdk';
-StellarSdk.Network.useTestNetwork();
+// StellarSdk.Network.useTestNetwork();
 
-const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
 const operation = StellarSdk.Operation;
 const kp = StellarSdk.Keypair;
 
@@ -136,20 +135,34 @@ export default {
   },
   methods: {
     submitTransaction() {
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
+      if (this.$store.state.networkURL === 'https://horizon.stellar.org') {
+        StellarSdk.Network.usePublicNetwork();
+      } else {
+        StellarSdk.Network.useTestNetwork();
+      }
       var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
-      var privKP = kp.fromSecret(this.privateKey)
-      transaction.sign(privKP);
-      this.creationStep = 'loader';
-      server.submitTransaction(transaction)
-        .then(data => {
-          Materialize.toast('SUCCESS, Vault Created');
-          Materialize.toast(data._links.transaction.href);
-          this.creationStep = 'check'
-        })
-        .catch(err => Materialize.toast('Invalid Secret', 4000))
-
+      try {
+        var privKP = kp.fromSecret(this.privateKey)
+        transaction.sign(privKP);
+        this.creationStep = 'loader';
+        server.submitTransaction(transaction)
+          .then(data => {
+            Materialize.toast('SUCCESS, Vault Created');
+            Materialize.toast(data._links.transaction.href);
+            this.creationStep = 'check'
+            this.$router.push('/')
+          })
+          .catch(err => {
+            Materialize.toast('Invalid Secret', 4000);
+          })
+      } catch (err) {
+        Materialize.toast('Invalid Private Key');
+      }
     },
     createVault() {
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
+
       // vaultAccount is by default started at null, after creating a random KP
       // account with createVaultAccount() this var is set to an actual value
       this.startVaultCreation = true
@@ -316,6 +329,6 @@ tbody {
   top: auto !important;
   right: auto !important;
   bottom: 10%;
-  left:7%;
+  left: 7%;
 }
 </style>

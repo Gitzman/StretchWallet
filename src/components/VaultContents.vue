@@ -61,20 +61,6 @@ import VaultCreation from './VaultCreation';
 import axios from 'axios';
 import jquery from 'jquery';
 import material from 'materialize-css';
-import StellarSdk from 'stellar-sdk';
-StellarSdk.Network.useTestNetwork();
-
-const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
-const operation = StellarSdk.Operation;
-const kp = StellarSdk.Keypair;
-
-const accountId = ''; //include public key here for dev
-// const personalkeypair = kp.fromSecret(''); // include private key here for dev
-
-// vaultAccount is by default started at null, after creating a random KP
-// account with createVaultAccount() this var is set to an actual value
-let vaultAccount = null;
-let personalAccount = null;
 
 export default {
   name: 'VaultContents',

@@ -47,8 +47,7 @@ import VaultContents from './VaultContents';
 import Deposit from './Deposit.vue';
 // import Error from './Error';
 
-StellarSdk.Network.useTestNetwork();
-const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+// StellarSdk.Network.useTestNetwork();
 
 export default {
   name: 'FormInfoWallet',
@@ -90,6 +89,13 @@ export default {
   },
   methods: {
     getWalletInfo() {
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
+      if (this.$store.state.networkURL === 'https://horizon.stellar.org'){
+        StellarSdk.Network.usePublicNetwork();
+      }
+      else{
+        StellarSdk.Network.useTestNetwork();
+      }
       this.$router.push('/');
       server.loadAccount(this.$store.state.publicKey)
       .then(data => {

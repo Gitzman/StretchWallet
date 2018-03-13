@@ -6,20 +6,6 @@ import axios from 'axios';
 import App from './App';
 import router from './router';
 import StellarSdk from 'stellar-sdk';
-StellarSdk.Network.useTestNetwork();
-
-const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
-const operation = StellarSdk.Operation;
-const kp = StellarSdk.Keypair;
-
-const accountId = ''; //include public key here for dev
-// const personalkeypair = kp.fromSecret(''); // include private key here for dev
-
-// vaultAccount is by default started at null, after creating a random KP
-// account with createVaultAccount() this var is set to an actual value
-// let vaultAccount = null;
-let personalAccount = null;
-
 
 Vue.use(VueX);
 Vue.config.productionTip = false;
@@ -59,22 +45,19 @@ function processContents(balances) {
         'issuer': balances[i].asset_issuer,
         'amount': parseFloat(balances[i].balance)
       };
-      final_object[key].safes.push( addSafe );
-    }
-    else {
+      final_object[key].safes.push(addSafe);
+    } else {
       final_object[key] = {
-        'safes': [
-          {
+        'safes': [{
           'issuer': balances[i].asset_issuer,
           'amount': parseFloat(balances[i].balance)
-        }
-        ],
+        }],
         'limit': balances[i].limit,
         'asset_type': balances[i].asset_type
       };
     }
   }
-// could be optimized by inserting every new register in a sorted list , TODO
+  // could be optimized by inserting every new register in a sorted list , TODO
   for (var key in final_object) {
     final_object[key].safes = quicksort(final_object[key].safes);
   }
@@ -82,9 +65,12 @@ function processContents(balances) {
 }
 
 
+
 const store = new VueX.Store({
   state: {
     count: 0,
+    networkURL: 'https://horizon-testnet.stellar.org/',
+    networkPassphrase: 'TESTNET',
     publicKey: '',
     vaultExist: null,
     balances: [],
@@ -118,11 +104,42 @@ const store = new VueX.Store({
     setBalances(state, value) {
       state.balances = processContents(value);
     },
-    setPersonalLumens(state, value){
+    setPersonalLumens(state, value) {
       state.balances['undefined'] = value;
     },
     setVaultPublicKey(state, value) {
       state.newVault.publicKey = value;
+    },
+    switchNetwork(state, value) {
+      if (value === true) {
+        state.networkURL = 'https://horizon.stellar.org/';
+        state.networkPassphrase = 'PUBLIC';
+
+      } else {
+        state.networkURL = 'https://horizon-testnet.stellar.org/';
+        state.networkPassphrase = 'TESTNET';
+      }
+    },
+    reset(state) {
+      var newState = {
+        count: 0,
+        networkURL: 'https://horizon-testnet.stellar.org/',
+        publicKey: '',
+        vaultExist: null,
+        balances: [],
+        validPublicKey: false,
+        newVault: {
+          publicKey: '',
+          secret: '',
+          xdrEnvelope: '',
+        },
+        deposit: {
+          asset_code: null,
+          amount: null,
+          rate: null,
+        },
+      };
+      Object.assign(state, newState);
     }
   },
 });

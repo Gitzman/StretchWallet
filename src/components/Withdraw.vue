@@ -57,8 +57,8 @@
         </div>
       </div>
     </div>
-    <div v-if='withdrawStage === "check"'>
-      <i class='material-icons'>check</i>
+    <div v-if='withdrawStage === "check" || withdrawStage === "close"'>
+      <i class='material-icons'>{{withdrawStage}}</i>
     </div>
   </div>
 </transition>
@@ -70,9 +70,6 @@
 import jquery from 'jquery';
 import StellarSdk from 'stellar-sdk';
 
-StellarSdk.Network.useTestNetwork();
-
-const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
 const kp = StellarSdk.Keypair;
 
 export default {
@@ -109,24 +106,35 @@ export default {
   mounted() {},
   methods: {
     submitTransaction() {
-      this.withdrawStage = 'loader';
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
+      if (this.$store.state.networkURL === 'https://horizon.stellar.org') {
+        StellarSdk.Network.usePublicNetwork();
+      } else {
+        StellarSdk.Network.useTestNetwork();
+      }
       var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
       var privKP = kp.fromSecret(this.userPrivateKey);
       var vaultprivKP = kp.fromSecret(this.vaultPrivateKey);
       transaction.sign(privKP);
       transaction.sign(vaultprivKP);
+      this.withdrawStage = 'loader';
       server.submitTransaction(transaction)
         .then(data => {
           Materialize.toast("SUCCESS: Withdrawal Complete");
           Materialize.toast(data._links.transaction.href);
-          this.withdrawStage = 'check'
-
+          this.withdrawStage = 'check';
+          this.$router.push('/')
         })
-        .catch(err => console.log(err))
+        .catch(err => {
+          console.log(err);
+          Materialize.toast('Failure, Not possible to withdraw')
+          this.withdrawStage = 'close'
+          this.$router.push('/')
+        })
 
     },
     createTransaction() {
-
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
       const symbol = this.symbol;
       const safePublicKey = this.$store.state.balances[this.symbol].safes[0].issuer;
       const safeAsset = new StellarSdk.Asset(this.symbol, safePublicKey)
