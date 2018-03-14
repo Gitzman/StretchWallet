@@ -117,7 +117,6 @@ import axios from 'axios';
 import jquery from 'jquery';
 import material from 'materialize-css';
 import StellarSdk from 'stellar-sdk';
-// StellarSdk.Network.useTestNetwork();
 
 const operation = StellarSdk.Operation;
 const kp = StellarSdk.Keypair;
@@ -181,36 +180,36 @@ export default {
     },
     getWalletInfo() {
       const server = new StellarSdk.Server(this.$store.state.networkURL);
-      if (this.$store.state.networkURL === 'https://horizon.stellar.org'){
+      if (this.$store.state.networkURL === 'https://horizon.stellar.org') {
         StellarSdk.Network.usePublicNetwork();
-      }
-      else{
+      } else {
         StellarSdk.Network.useTestNetwork();
       }
       this.$router.push('/');
       server.loadAccount(this.$store.state.publicKey)
-      .then(data => {
-        if (data.data_attr.hasOwnProperty('vault_account')) {
-          const vaultkey =  window.atob(data.data_attr.vault_account);
-          // add vaultkey to the state to have the public key of the vault in the state
-          this.$store.commit('setVaultPublicKey', vaultkey);
-          server.loadAccount(vaultkey)
-          .then(vaultdata => {
-            this.$store.commit('setBalances', vaultdata.balances);
-            this.$store.commit('confirmVault', true);
-            this.$store.commit('setPersonalBalances',  data.balances)
-          })
-          .catch(err => {
-            Materialize.toast('The vault account associated to your account is invalid');
-          })
-          return null //required by javacript to return something
-        }
-        else{
-          this.$store.commit('confirmVault', false);
-          this.$store.commit('setPersonalBalances', data.balances)
-        }
-      })
-      .catch(err => { Materialize.toast('Invalid Public Key', 4000) })
+        .then(data => {
+          if (data.data_attr.hasOwnProperty('vault_account')) {
+            const vaultkey = window.atob(data.data_attr.vault_account);
+            // add vaultkey to the state to have the public key of the vault in the state
+            this.$store.commit('setVaultPublicKey', vaultkey);
+            server.loadAccount(vaultkey)
+              .then(vaultdata => {
+                this.$store.commit('setBalances', vaultdata.balances);
+                this.$store.commit('confirmVault', true);
+                this.$store.commit('setPersonalBalances', data.balances)
+              })
+              .catch(err => {
+                Materialize.toast('The vault account associated to your account is invalid');
+              })
+            return null //required by javacript to return something
+          } else {
+            this.$store.commit('confirmVault', false);
+            this.$store.commit('setPersonalBalances', data.balances)
+          }
+        })
+        .catch(err => {
+          Materialize.toast('Invalid Public Key', 4000)
+        })
     },
     createVault() {
       const server = new StellarSdk.Server(this.$store.state.networkURL);
@@ -221,10 +220,12 @@ export default {
 
       let vaultAccount = null;
       let personalAccount = null;
-      const address = `https://horizon-testnet.stellar.org/accounts/${this.$store.state.publicKey}`;
-      axios.get(address)
-        .then((data) => {
-          personalAccount = new StellarSdk.Account(this.$store.state.publicKey, data.data.sequence);
+
+      server.loadAccount(this.$store.state.publicKey)
+        .then(data => {
+          console.log(data)
+          console.log(data.data.sequence);
+          personalAccount = new StellarSdk.Account(this.$store.state.publicKey, data.sequenceNumber() + '');
 
           // creating KP, this do not create the actual account, only its keys
           const vaultKP = kp.random();
@@ -278,9 +279,10 @@ export default {
 
         })
         .catch((err) => {
+          alert(err);
           console.log(err);
         });
-    },
+    }
   },
   mounted() {},
   computed: {

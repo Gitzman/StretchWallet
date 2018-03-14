@@ -14,7 +14,7 @@
       </div>
       <div class="column input-field col s6">
         <input placeholder="Description" v-model='description' type='text' :disabled='xdrEnvelope != null'></input>
-        <!-- <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input> -->
+        <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input>
       </div>
     </div>
     <div v-if='xdrEnvelope'>
