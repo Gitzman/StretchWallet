@@ -3,11 +3,18 @@
     <transition name='fade'>
     <div v-if='$store.state.vaultExist'>
       <ul class="collapsiblelumen" data-collapsible="expandable">
-        <li>
+        <li v-for='asset in $store.state.personalBalances' v-if='!asset.asset_code'>
           <div class="collapsible-header">
             <i class="material-icons">
-              star
-            </i> Lumens {{$store.state.balances['undefined']}} XLM
+              monetization_on
+            </i> XLM {{asset.balance}}
+          </div>
+        </li>
+        <li v-for='asset in $store.state.personalBalances' v-if='asset.asset_code'>
+          <div class="collapsible-header">
+            <i class="material-icons">
+              work
+            </i> {{asset.asset_code}} {{asset.balance}}
           </div>
         </li>
       </ul>

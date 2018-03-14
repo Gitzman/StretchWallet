@@ -107,7 +107,7 @@ export default {
           .then(vaultdata => {
             this.$store.commit('setBalances', vaultdata.balances);
             this.$store.commit('confirmVault', true);
-            this.$store.commit('setPersonalLumens',  data.balances[0].balance)
+            this.$store.commit('setPersonalBalances',  data.balances)
           })
           .catch(err => {
             Materialize.toast('The vault account associated to your account is invalid');
@@ -116,7 +116,7 @@ export default {
         }
         else{
           this.$store.commit('confirmVault', false);
-          this.$store.commit('setPersonalLumens', data.balances[data.balances.length - 1].balance)
+          this.$store.commit('setPersonalBalances', data.balances)
         }
       })
       .catch(err => { Materialize.toast('Invalid Public Key', 4000) })

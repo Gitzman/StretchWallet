@@ -74,6 +74,7 @@ const store = new VueX.Store({
     publicKey: '',
     vaultExist: null,
     balances: [],
+    personalBalances: [],
     validPublicKey: false,
     newVault: {
       publicKey: '',
@@ -104,7 +105,8 @@ const store = new VueX.Store({
     setBalances(state, value) {
       state.balances = processContents(value);
     },
-    setPersonalLumens(state, value) {
+    setPersonalBalances(state, value) {
+      state.personalBalances = value;
       state.balances['undefined'] = value;
     },
     setVaultPublicKey(state, value) {
@@ -127,6 +129,7 @@ const store = new VueX.Store({
         publicKey: '',
         vaultExist: null,
         balances: [],
+        personalBalances: [],
         validPublicKey: false,
         newVault: {
           publicKey: '',
