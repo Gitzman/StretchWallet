@@ -11,7 +11,7 @@
         </select>
       </div>
       <div class='container'></div>
-      <div class='content'>
+      <div class='content input-field' >
         <input placeholder='Amount' type='number' v-model.number='amount' :disabled='xdrEnvelope != null'>
         </input>
       </div>
@@ -20,18 +20,25 @@
     <transition name='fade'>
       <div v-if='xdrEnvelope'>
         <form class="col s12">
-          <label>Transaction to sign</label>
           <div class="row xdrEnvelope">
-            <div class="input-field col m3 coltextarea">
-              <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'>
-              </textarea>
+            <!-- <div class="input-field col m3 coltextarea">
+              <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+            </div> -->
+            <br>
+            <div>
+              <a class="btn waves-effect light-blue darken-3" target="_blank" :href='laboratoryLink'>
+              Sign outside
+            </a>
             </div>
           </div>
         </form>
         <div>
-          <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'>
+          <label>or sign here</label>
+        </div>
+        <div class='input-field'>
+          <input v-model='userPrivateKey' type='text' placeholder='User Private Key'>
           </input>
-          <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'>
+          <input v-model='vaultPrivateKey' type='text' placeholder='Vault Private Key'>
           </input>
         </div>
       </div>
@@ -101,7 +108,14 @@ export default {
         })
       }
       return res
-    }
+    },
+    laboratoryLink: function() {
+      if (this.$store.state.networkPassphrase === 'PUBLIC') {
+        return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=public`;
+      } else {
+        return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=test`;
+      }
+    },
   },
   mounted() {},
   methods: {
@@ -276,7 +290,6 @@ select {
 }
 
 .xdrEnvelope {
-  display: flex;
   width: 100%;
 }
 
@@ -308,5 +321,29 @@ select {
 
   {
   opacity: 0;
+}
+
+/* label focus color */
+
+.input-field input[type=text]:focus+label {
+  color: #337ab7;
+}
+
+/* label underline focus color */
+
+.input-field input[type=text]:focus {
+  border-bottom: 1px solid #337ab7;
+  box-shadow: 0 1px 0 0 #337ab7;
+}
+
+/* label underline focus color */
+
+.input-field input[type=number]:focus {
+  border-bottom: 1px solid #337ab7;
+  box-shadow: 0 1px 0 0 #337ab7;
+}
+
+.input-field {
+  margin: 0;
 }
 </style>

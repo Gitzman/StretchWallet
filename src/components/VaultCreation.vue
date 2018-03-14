@@ -17,82 +17,97 @@
         </div>
       </li>
     </ul>
-    <div class='beforeCreation collapsible' v-if='!startVaultCreation'>
-      <h3>No Associated Vault</h3>
-      <a class="btn-large waves-effect light-blue darken-3" @click='createVault()'>
+    <transition name='fade'>
+      <div class='beforeCreation collapsible' v-if='!startVaultCreation'>
+        <h3>No Associated Vault</h3>
+        <a class="btn-large waves-effect light-blue darken-3" @click='createVault()'>
         <i class="material-icons right">
           add
         </i>
         Create vault to public key
         </a>
-    </div>
-    <div v-else class='collapsible'>
-      <div class="preloader-wrapper big active" v-if="xdrEnvelope===''">
-        <div class="spinner-layer spinner-blue-only">
-          <div class="circle-clipper left">
-            <div class="circle"></div>
-          </div>
-          <div class="gap-patch">
-            <div class="circle"></div>
-          </div>
-          <div class="circle-clipper right">
-            <div class="circle"></div>
-          </div>
-        </div>
       </div>
-      <div v-else>
-        <br>
-        <div class='keycontainer'>
-          <h6 class='vaultTitle'>Vault public key: </h6>
-          <h6 class='vaultkey' id='publicKey'> {{vaultPublicKey}}</h6>
-        </div>
-        <br>
-        <div class='keycontainer'>
-          <h6 class='vaultTitle'>Vault secret: </h6>
-          <h6 class='vaultkey' id='secret'> {{vaultPrivateKey}}</h6>
-        </div>
-        <br>
-        <br>
-        <div class="row">
-          <form class="col s12">
-            <label>Transaction to sign</label>
-            <div class="row">
-              <div class="input-field col">
-                <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
-              </div>
+      <div v-else class='collapsible'>
+        <div class="preloader-wrapper big active" v-if="xdrEnvelope===''">
+          <div class="spinner-layer spinner-blue-only">
+            <div class="circle-clipper left">
+              <div class="circle"></div>
             </div>
-          </form>
+            <div class="gap-patch">
+              <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+              <div class="circle"></div>
+            </div>
+          </div>
         </div>
-        <div class="row">
-          <div class="input-field col s6 signingcomp">
-            <input id="signingkey" type="text" v-model='privateKey' class="validate">
-            <label for="signingkey">Secret to sign</label>
-            <a @click='submitTransaction()' v-if='creationStep === "button"' class="btn-large waves-effect light-blue darken-3">
+        <div v-else>
+          <br>
+          <div class='keycontainer'>
+            <h6 class=''>Public key: </h6>
+            <h6 class='vaultkey vaultTitle' id='publicKey'> {{vaultPublicKey}}</h6>
+          </div>
+          <div class='keycontainer'>
+            <h6 class=''>Vault secret: </h6>
+            <h6 class='vaultkey vaultTitle' id='secret'> {{vaultPrivateKey}}</h6>
+          </div>
+          <div class="row middlediv">
+            <form class="col s12 middlebutton">
+              <div class="row middlediv">
+                <!-- <div class="input-field col m3 coltextarea">
+                <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+              </div> -->
+                <br>
+                <div>
+                  <a class="btn waves-effect light-blue darken-3" target="_blank" :href='laboratoryLink'>
+                Sign outside
+              </a>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div>
+            <label class='labeloption'>or sign here</label>
+          </div>
+          <div class="row lastrow">
+            <div class='container'></div>
+            <div class="input-field col s6 lastrowdiv">
+
+              <input id="signingkey" type="text" v-model='privateKey' class="validate">
+              <label for="signingkey">Secret to sign</label>
+              <a @click='submitTransaction()' v-if='creationStep === "button"' id='finalbutton' class="btn-large waves-effect light-blue darken-3">
                 <i class="material-icons right">send</i> Create Vault
             </a>
-            <div class="preloader-wrapper big active" v-if='creationStep === "loader"'>
-              <div class="spinner-layer spinner-blue-only">
-                <div class="circle-clipper left">
-                  <div class="circle"></div>
-                </div>
-                <div class="gap-patch">
-                  <div class="circle"></div>
-                </div>
-                <div class="circle-clipper right">
-                  <div class="circle"></div>
+
+              <div class="preloader-wrapper big active" v-if='creationStep === "loader"'>
+                <div class="spinner-layer spinner-blue-only">
+                  <div class="circle-clipper left">
+                    <div class="circle"></div>
+                  </div>
+                  <div class="gap-patch">
+                    <div class="circle"></div>
+                  </div>
+                  <div class="circle-clipper right">
+                    <div class="circle"></div>
+                  </div>
                 </div>
               </div>
+
+              <div v-if='creationStep === "check"'>
+                <i class='material-icons'>check</i>
+              </div>
+
             </div>
-            <div v-if='creationStep === "check"'>
-              <i class='material-icons'>check</i>
-            </div>
-          </div>
-          <a @click='createVault()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
+            <div>
+              <a @click='createVault()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
               <i class="material-icons right" >send</i> Create Transaction
-            </a>
+          </a>
+            </div>
+            <div class='container'></div>
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
   </div>
 </transition>
 </template>
@@ -149,23 +164,53 @@ export default {
         StellarSdk.Network.useTestNetwork();
       }
       var transaction = new StellarSdk.Transaction(this.xdrEnvelope);
-      try {
-        var privKP = kp.fromSecret(this.privateKey)
-        transaction.sign(privKP);
-        this.creationStep = 'loader';
-        server.submitTransaction(transaction)
-          .then(data => {
-            Materialize.toast('SUCCESS, Vault Created');
-            Materialize.toast(data._links.transaction.href);
-            this.creationStep = 'check'
-            this.$router.push('/')
+      var privKP = kp.fromSecret(this.privateKey)
+      transaction.sign(privKP);
+      this.creationStep = 'loader';
+      server.submitTransaction(transaction)
+        .then(data => {
+          Materialize.toast('SUCCESS, Vault Created');
+          Materialize.toast(data._links.transaction.href);
+          this.creationStep = 'check'
+          this.$router.push('/')
+          this.getWalletInfo();
+        })
+        .catch(err => {
+          Materialize.toast('Invalid Secret', 4000);
+        })
+    },
+    getWalletInfo() {
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
+      if (this.$store.state.networkURL === 'https://horizon.stellar.org'){
+        StellarSdk.Network.usePublicNetwork();
+      }
+      else{
+        StellarSdk.Network.useTestNetwork();
+      }
+      this.$router.push('/');
+      server.loadAccount(this.$store.state.publicKey)
+      .then(data => {
+        if (data.data_attr.hasOwnProperty('vault_account')) {
+          const vaultkey =  window.atob(data.data_attr.vault_account);
+          // add vaultkey to the state to have the public key of the vault in the state
+          this.$store.commit('setVaultPublicKey', vaultkey);
+          server.loadAccount(vaultkey)
+          .then(vaultdata => {
+            this.$store.commit('setBalances', vaultdata.balances);
+            this.$store.commit('confirmVault', true);
+            this.$store.commit('setPersonalBalances',  data.balances)
           })
           .catch(err => {
-            Materialize.toast('Invalid Secret', 4000);
+            Materialize.toast('The vault account associated to your account is invalid');
           })
-      } catch (err) {
-        Materialize.toast('Invalid Private Key');
-      }
+          return null //required by javacript to return something
+        }
+        else{
+          this.$store.commit('confirmVault', false);
+          this.$store.commit('setPersonalBalances', data.balances)
+        }
+      })
+      .catch(err => { Materialize.toast('Invalid Public Key', 4000) })
     },
     createVault() {
       const server = new StellarSdk.Server(this.$store.state.networkURL);
@@ -238,6 +283,15 @@ export default {
     },
   },
   mounted() {},
+  computed: {
+    laboratoryLink: function() {
+      if (this.$store.state.networkPassphrase === 'PUBLIC') {
+        return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=public`;
+      } else {
+        return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=test`;
+      }
+    },
+  }
 };
 </script>
 
@@ -268,10 +322,7 @@ tbody {
 }
 
 .collapsible {
-  width: 90%;
   margin: auto;
-  min-width: 597px;
-  /* height: 33rem; */
   -webkit-box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
   background: rgb(250, 250, 250);
@@ -280,21 +331,15 @@ tbody {
 
 .vaultkey {
   overflow-x: scroll;
+  min-width: 38rem;
 }
 
 .keycontainer {
-  display: flex;
+  /* display: flex; */
   margin: auto;
   width: 44rem;
 }
 
-#textarea1 {
-  height: 100%;
-  padding: 0;
-  color: black;
-  width: 80%;
-  overflow-y: scroll;
-}
 
 .btn-large {
   margin: 1rem;
@@ -304,27 +349,7 @@ tbody {
   font-weight: 600;
 }
 
-.row {
-  display: flex;
-  margin: 0;
-  height: 12rem;
-  margin-bottom: 3rem;
-}
-
-.input-field {
-  width: 90%;
-  margin: auto;
-  height: 90%;
-  margin-bottom: 10rem;
-}
-
-.signingcomp {
-  margin-top: 3rem;
-}
-
 .collapsiblelumen {
-  width: 90%;
-  min-width: 597px;
   margin: auto;
   margin-bottom: 2rem;
   overflow-y: scroll;
@@ -337,5 +362,61 @@ tbody {
   right: auto !important;
   bottom: 10%;
   left: 7%;
+}
+
+.container {
+  flex: 1
+}
+
+.lastrow {
+  display: flex;
+}
+
+.lastrowdiv {
+  flex-direction: row;
+  flex: 7;
+  margin: 0;
+}
+
+#finalbutton {
+  margin: 0;
+}
+
+.middlediv {
+  margin: 0;
+}
+
+
+/* label focus color */
+
+.input-field input[type=text]:focus+label {
+  color: #337ab7 !important;
+}
+
+/* label underline focus color */
+
+.input-field input[type=text]:focus {
+  border-bottom: 1px solid #337ab7 !important;
+  box-shadow: 0 1px 0 0 #337ab7 !important;
+}
+
+/* valid color */
+
+.input-field input[type=text].valid {
+  border-bottom: 1px solid #337ab7 !important;
+  box-shadow: 0 1px 0 0 #337ab7 !important;
+}
+
+/* invalid color */
+
+.input-field input[type=text].invalid {
+  border-bottom: 1px solid #337ab7 !important;
+  box-shadow: 0 1px 0 0 #337ab7 !important;
+}
+
+/* icon prefix focus color */
+
+.input-field .prefix.active {
+  color: #337ab7 !important;
 }
 </style>

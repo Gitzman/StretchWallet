@@ -198,11 +198,6 @@ export default {
   opacity: 0;
 }
 
-/* label color */
-
-.input-field label {
-  color: black !important;
-}
 
 /* label focus color */
 

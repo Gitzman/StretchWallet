@@ -3,32 +3,40 @@
   <div class='depositcomp' v-show='$store.state.vaultExist'>
     <div class='row inputs'>
       <div class="column input-field col s6">
-        <input list='tokens' placeholder='Token code' v-model='symbol' :disabled='xdrEnvelope != null'></input>
+        <input list='tokens' placeholder='Token code' v-model='symbol' type='text' :disabled='xdrEnvelope != null'></input>
         <datalist id='tokens' :disabled='xdrEnvelope != null'>
           <option value='NEW: Create new token' />
           <option v-for='asset in balances' :value='asset' v-if='asset != "undefined"'/>
         </datalist>
-        <input placeholder="Symbol ABC QWE" v-model='newSymbol' v-if='symbol === "NEW: Create new token"' :disabled='xdrEnvelope != null'></input>
+        <!-- <input placeholder="Symbol ABC QWE" v-model='newSymbol' v-if='symbol === "NEW: Create new token"' :disabled='xdrEnvelope != null'></input> -->
         <input placeholder="Amount" type='number' v-model.number='amount' :disabled='xdrEnvelope != null'></input>
 
       </div>
       <div class="column input-field col s6">
-        <input placeholder="Description" v-model='description' :disabled='xdrEnvelope != null'></input>
+        <input placeholder="Description" v-model='description' type='text' :disabled='xdrEnvelope != null'></input>
         <!-- <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input> -->
       </div>
     </div>
     <div v-if='xdrEnvelope'>
       <form class="col s12">
-        <label>Transaction to sign</label>
         <div class="row xdrEnvelope">
-          <div class="input-field col m3 coltextarea">
+          <!-- <div class="input-field col m3 coltextarea">
             <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
+          </div> -->
+          <br>
+          <div>
+            <a class="btn waves-effect light-blue darken-3" target="_blank" :href='laboratoryLink'>
+            Sign outside
+          </a>
           </div>
         </div>
       </form>
       <div>
-        <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'></input>
-        <input v-model='vaultPrivateKey' placeholder='[Optional] Vault Private Key'></input>
+        <label>or sign here</label>
+      </div>
+      <div class='input-field'>
+        <input v-model='userPrivateKey' type='text' placeholder='User Private Key'></input>
+        <input v-model='vaultPrivateKey' type='text' placeholder='Vault Private Key'></input>
       </div>
     </div>
     <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
@@ -87,6 +95,13 @@ export default {
     balances() {
       var res = Object.keys(this.$store.state.balances);
       return res;
+    },
+    laboratoryLink: function() {
+      if (this.$store.state.networkPassphrase === 'PUBLIC') {
+        return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=public`;
+      } else {
+        return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=test`;
+      }
     }
   },
   directives: {
@@ -298,12 +313,33 @@ export default {
 }
 
 .xdrEnvelope {
-  display: flex;
+  /* display: flex; */
   width: 100%;
 }
 
 .coltextarea {
   margin: auto;
   width: 77% !important;
+}
+
+
+/* label focus color */
+
+.input-field input[type=text]:focus+label {
+  color: #337ab7;
+}
+
+/* label underline focus color */
+
+.input-field input[type=text]:focus {
+  border-bottom: 1px solid #337ab7;
+  box-shadow: 0 1px 0 0 #337ab7;
+}
+
+/* label underline focus color */
+
+.input-field input[type=number]:focus {
+  border-bottom: 1px solid #337ab7;
+  box-shadow: 0 1px 0 0 #337ab7;
 }
 </style>
