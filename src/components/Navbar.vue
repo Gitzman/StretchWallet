@@ -1,7 +1,14 @@
 <template>
   <nav class='navbar'>
     <div class="nav-wrapper">
-      <h3>StretchWallet</h3>
+      <ul class='left'>
+        <router-link to='/' class="brand-logo">StretchWallet</router-link>
+      </ul>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+        <li><router-link to='/FAQ'>FAQ</router-link></li>
+        <li><router-link to='/Instructions' >Instructions</router-link></li>
+        <li><router-link to='/AboutUs'>About Us</router-link></li>
+      </ul>
     </div>
   </nav>
 </template>
@@ -19,8 +26,8 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 0.5rem
+.brand-logo {
+  margin-left: 0.5rem
 }
 
 .nav-wrapper {
@@ -29,11 +36,9 @@ h3 {
 }
 
 .navbar {
-  display: flex;
+  /* display: flex; */
   background-color: #337ab7;
   margin-bottom: 2rem;
 
 }
-
-
 </style>
