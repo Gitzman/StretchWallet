@@ -1,10 +1,9 @@
 <template>
 <div id="app">
   <NavBar></NavBar>
-  <FormInfoWallet></FormInfoWallet>
-  <!-- <Modal></Modal> -->
+  <FormInfoWallet v-if='!isExtraInfo'></FormInfoWallet>
   <router-view class='router' />
-  <div class="switch">
+  <div class="switch" v-if='!isExtraInfo'>
     <label>
       TESTNET
       <input type="checkbox" v-model='pubnet'>
@@ -17,7 +16,6 @@
 
 <script>
 import NavBar from './components/Navbar';
-import Modal from './components/Modal';
 import FormInfoWallet from './components/FormInfoWallet';
 export default {
   name: 'App',
@@ -35,9 +33,21 @@ export default {
   },
   components: {
     NavBar,
-    Modal,
     FormInfoWallet,
   },
+  computed: {
+    isExtraInfo() {
+      if (this.$route.path === 'deposit' ||
+        this.$route.path === 'withdraw' ||
+        this.$route.path === '/' ||
+        this.$route.path === 'send') {
+        return false
+      }
+      else {
+        return true
+      }
+    }
+  }
 };
 </script>
 

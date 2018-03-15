@@ -5,6 +5,9 @@ import VaultContents from '../components/VaultContents';
 import Deposit from '../components/Deposit';
 import Withdraw from '../components/Withdraw';
 import SendXLM from '../components/SendXLM.vue';
+import Extra from '../components/Extra.vue';
+
+// import AboutUs from '../components/AboutUS';
 
 export default new Router({
   mode: 'history',
@@ -34,6 +37,27 @@ export default new Router({
       components: {
         default: SendXLM,
         contents: SendXLM,
+      },
+    },
+    {
+      path: '/FAQ',
+      components: {
+        default: Extra,
+        contents: Extra,
+      },
+    },
+    {
+      path: '/Instructions',
+      components: {
+        default: Extra,
+        contents: Extra,
+      },
+    },
+    {
+      path: '/AboutUs',
+      components: {
+        default: Extra,
+        contents: Extra,
       },
     },
   ],
