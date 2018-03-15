@@ -7,7 +7,7 @@
           <div class="collapsible-header">
             <i class="material-icons">
               monetization_on
-            </i> XLM {{asset.balance}}
+            </i> {{asset.balance}} XLM
           </div>
         </li>
         <li v-for='asset in $store.state.personalBalances' v-if='asset.asset_code'>
@@ -51,6 +51,7 @@
                 </tbody>
               </table>
             </div> -->
+
           </li>
         </ul>
       </div>

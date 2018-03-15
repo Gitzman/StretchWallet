@@ -11,7 +11,7 @@
         </select>
       </div>
       <div class='container'></div>
-      <div class='content input-field' >
+      <div class='content input-field'>
         <input placeholder='Amount' type='number' v-model.number='amount' :disabled='xdrEnvelope != null'>
         </input>
       </div>
@@ -21,13 +21,13 @@
       <div v-if='xdrEnvelope'>
         <form class="col s12">
           <div class="row xdrEnvelope">
-            <!-- <div class="input-field col m3 coltextarea">
-              <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
-            </div> -->
-            <br>
+            <div class='summary'>
+              <label>Summary</label>
+              <p>{{summary}}</p>
+            </div>
             <div>
               <a class="btn waves-effect light-blue darken-3" target="_blank" :href='laboratoryLink'>
-              Sign outside
+                Sign and withdraw in the stellar laboratory
             </a>
             </div>
           </div>
@@ -44,12 +44,12 @@
       </div>
     </transition>
 
-    <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
+    <a @click='createTransaction()' v-if='xdrEnvelope == null' :class="{'btn-large waves-effect light-blue darken-3':true, 'disabled': !validAmount}">
       <i class="material-icons right">send</i> Create Transaction
     </a>
 
     <a @click='submitTransaction()' v-if='xdrEnvelope != null && withdrawStage == "button"' class="btn-large waves-effect light-blue darken-3">
-      <i class="material-icons right">send</i> Withdraw
+      <i class="material-icons right">send</i> Sign and Withdraw
     </a>
     <div class="preloader-wrapper big active" v-if='withdrawStage === "loader"'>
       <div class="spinner-layer spinner-blue-only">
@@ -83,10 +83,9 @@ export default {
   name: 'Withdraw',
   data() {
     return {
-      depositOld: false, //is true if the deposit is in the same field as an old safe box
       amount: null,
       symbol: null,
-      denomination: null,
+      denomination: 1,
       vaultPrivateKey: null,
       userPrivateKey: null,
       xdrEnvelope: null,
@@ -116,6 +115,20 @@ export default {
         return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=test`;
       }
     },
+    summary: function() {
+      return `You are withdrawing ${parseFloat(this.amount)} XLM from the "${this.symbol}" vault. Your final personal balance will be ${parseFloat(this.$store.state.balances["undefined"][0].balance) + this.amount} XLM`
+    },
+    validAmount: function() {
+      //iterate over all the safes from this symbol. at the end of every iteration check if residue is >= 0
+      var counter = this.amount;
+      for (var i = 0; i < this.$store.state.balances[this.symbol].safes.length; i++){
+        counter -= this.$store.state.balances[this.symbol].safes[i].amount;
+        if (counter <= 0) {
+          return true;
+        }
+      }
+      return false;
+    }
   },
   mounted() {},
   methods: {
@@ -156,6 +169,11 @@ export default {
       const balances = this.$store.state.balances;
       const vaultPublicKey = this.$store.state.newVault.publicKey;
       const personalPublicKey = this.$store.state.publicKey;
+      const denomination = this.denomination;
+
+      function getDenomination(issuer) {
+
+      }
 
       function preTransaction(balances, symbol, amount) {
         var arrNeededSafes = [];
@@ -186,7 +204,7 @@ export default {
             'source': vaultPublicKey,
             'selling': safeAsset,
             'buying': storedAsset,
-            'amount': (safesAmount[i][1] / 1) + '',
+            'amount': (safesAmount[i][1] / denomination) + '',
             'price': 1,
           };
           arrOperationsData.push(ops1);
@@ -345,5 +363,25 @@ select {
 
 .input-field {
   margin: 0;
+}
+
+.signingkeys {
+  margin-top: 0;
+}
+
+#amountinput {
+  margin-bottom: 1rem;
+}
+
+.summary p {
+  margin: auto;
+  margin-bottom: 1rem;
+  width: 70%;
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.summary {
+  margin-top: 0rem;
 }
 </style>

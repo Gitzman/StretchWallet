@@ -11,29 +11,31 @@
           <!-- <div class="input-field col m3 coltextarea">
             <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
           </div> -->
-          <br>
+          <div class='summary'>
+            <label>Summary</label>
+            <p>{{summary}}</p>
+          </div>
           <div>
             <a class="btn waves-effect light-blue darken-3" target="_blank" :href='laboratoryLink'>
-            Sign outside
+              Sign and send in the stellar laboratory
           </a>
           </div>
         </div>
       </form>
-      <br>
       <div>
         <label>or sign here</label>
       </div>
       <div>
-        <input v-model='userPrivateKey' placeholder='[Optional] User Private Key'></input>
+        <input v-model='userPrivateKey' placeholder='User Private Key'></input>
       </div>
     </div>
 
-    <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
+    <a @click='createTransaction()' v-if='xdrEnvelope == null' :class="{'btn-large waves-effect light-blue darken-3':true, 'disabled': !validAmount}">
       <i class="material-icons right">send</i> Create Transaction
     </a>
 
     <a @click='submitTransaction()' v-if='xdrEnvelope != null && sendingStage == "button"' class="btn-large waves-effect light-blue darken-3">
-      <i class="material-icons right">send</i> Send XLM
+      <i class="material-icons right">send</i> Sign and send XLM
     </a>
     <div class="preloader-wrapper big active" v-if='sendingStage === "loader"'>
       <div class="spinner-layer spinner-blue-only">
@@ -136,6 +138,12 @@ export default {
       } else {
         return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=test`;
       }
+    },
+    summary: function() {
+      return `You are sending ${parseFloat(this.amount)} XLM to ${this.destination}. Your final personal balance will be ${parseFloat(this.$store.state.balances["undefined"][0].balance) - this.amount} XLM`
+    },
+    validAmount: function() {
+      return (parseFloat(this.$store.state.balances["undefined"][0].balance) - this.amount) >= 0
     }
   }
 };
@@ -211,7 +219,21 @@ export default {
   box-shadow: 0 1px 0 0 #337ab7;
 }
 
-.input-field{
+.input-field {
   margin-top: 0;
 }
+
+
+.summary p {
+  margin: auto;
+  margin-bottom: 1rem;
+  width: 90%;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.summary {
+  margin-top: 0rem;
+}
+
 </style>

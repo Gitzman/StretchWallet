@@ -8,25 +8,22 @@
           <option value='NEW: Create new token' />
           <option v-for='asset in balances' :value='asset' v-if='asset != "undefined"'/>
         </datalist>
-        <!-- <input placeholder="Symbol ABC QWE" v-model='newSymbol' v-if='symbol === "NEW: Create new token"' :disabled='xdrEnvelope != null'></input> -->
-        <input placeholder="Amount" type='number' v-model.number='amount' :disabled='xdrEnvelope != null'></input>
-
+        <input placeholder="Amount" id='amountinput' type='number' min='0' v-model.number='amount' :disabled='xdrEnvelope != null'></input>
       </div>
       <div class="column input-field col s6">
         <input placeholder="Description" v-model='description' type='text' :disabled='xdrEnvelope != null'></input>
-        <input placeholder="Denomination" v-model.number='denomination' :disabled='xdrEnvelope != null'></input>
       </div>
     </div>
     <div v-if='xdrEnvelope'>
       <form class="col s12">
         <div class="row xdrEnvelope">
-          <!-- <div class="input-field col m3 coltextarea">
-            <textarea id="textarea1" disabled class="materialize-textarea" v-model='xdrEnvelope'></textarea>
-          </div> -->
-          <br>
+          <div class='summary'>
+            <label>Summary</label>
+            <p>{{summary}}</p>
+          </div>
           <div>
             <a class="btn waves-effect light-blue darken-3" target="_blank" :href='laboratoryLink'>
-            Sign outside
+            Sign and deposit in the stellar laboratory
           </a>
           </div>
         </div>
@@ -34,16 +31,16 @@
       <div>
         <label>or sign here</label>
       </div>
-      <div class='input-field'>
+      <div class='input-field signingkeys'>
         <input v-model='userPrivateKey' type='text' placeholder='User Private Key'></input>
         <input v-model='vaultPrivateKey' type='text' placeholder='Vault Private Key'></input>
       </div>
     </div>
-    <a @click='createTransaction()' v-if='xdrEnvelope == null' class="btn-large waves-effect light-blue darken-3">
+    <a @click='createTransaction()' v-if='xdrEnvelope == null' :class="{'btn-large waves-effect light-blue darken-3':true, 'disabled': !validAmount}">
       <i class="material-icons right">send</i> Create Transaction
     </a>
     <a @click='submitTransaction()' v-if='xdrEnvelope != null && depositStage == "button"' class="btn-large waves-effect light-blue darken-3">
-      <i class="material-icons right">send</i> Deposit
+      <i class="material-icons right">send</i> Sign and Deposit
     </a>
     <div class="preloader-wrapper big active" v-if='depositStage === "loader"'>
       <div class="spinner-layer spinner-blue-only">
@@ -65,13 +62,9 @@
 </transition>
 </template>
 
-
-
 <script>
 import jquery from 'jquery';
 import StellarSdk from 'stellar-sdk';
-
-// StellarSdk.Network.useTestNetwork();
 
 const kp = StellarSdk.Keypair;
 
@@ -83,7 +76,7 @@ export default {
       amount: null,
       symbol: null,
       description: null,
-      denomination: 1,
+      tion: 1,
       vaultPrivateKey: null,
       userPrivateKey: null,
       xdrEnvelope: null,
@@ -97,11 +90,18 @@ export default {
       return res;
     },
     laboratoryLink: function() {
+      const finalUrl = encodeURIComponent(this.xdrEnvelope)
       if (this.$store.state.networkPassphrase === 'PUBLIC') {
-        return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=public`;
+        return `https://www.stellar.org/laboratory/#txsigner?xdr=${finalUrl}&network=public`;
       } else {
-        return `https://www.stellar.org/laboratory/#txsigner?xdr=${encodeURIComponent(this.xdrEnvelope)}&network=test`;
+        return `https://www.stellar.org/laboratory/#txsigner?xdr=${finalUrl}&network=test`;
       }
+    },
+    summary: function() {
+      return `You are depositing ${parseFloat(this.amount)} XLM in the "${this.symbol}" vault. Your final personal balance will be ${parseFloat(this.$store.state.balances["undefined"][0].balance) - this.amount} XLM`
+    },
+    validAmount: function() {
+      return (parseFloat(this.$store.state.balances["undefined"][0].balance) - this.amount) >= 0
     }
   },
   directives: {
@@ -168,7 +168,7 @@ export default {
       const ops3 = {
         source: this.$store.state.newVault.publicKey,
         asset: safeAsset,
-        limit: this.amount / this.denomination + '',
+        limit: this.amount / this.tion + '',
       };
 
       const trustIssuerOperation = StellarSdk.Operation.changeTrust(ops3);
@@ -192,7 +192,7 @@ export default {
       const ops6 = {
         source: safeKP.publicKey(),
         destination: this.$store.state.newVault.publicKey,
-        amount: (this.amount / this.denomination) + '',
+        amount: (this.amount / this.tion) + '',
         asset: safeAsset,
       };
 
@@ -203,7 +203,7 @@ export default {
         selling: storedAsset,
         buying: safeAsset,
         amount: this.amount + '',
-        price: (1.0 / this.denomination) + '',
+        price: (1.0 / this.tion) + '',
       };
 
       const sellOfferOperation = StellarSdk.Operation.createPassiveOffer(ops7);
@@ -322,6 +322,17 @@ export default {
   width: 77% !important;
 }
 
+.summary p {
+  margin: auto;
+  margin-bottom: 1rem;
+  width: 70%;
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.summary {
+  margin-top: 0rem;
+}
 
 /* label focus color */
 
@@ -341,5 +352,13 @@ export default {
 .input-field input[type=number]:focus {
   border-bottom: 1px solid #337ab7;
   box-shadow: 0 1px 0 0 #337ab7;
+}
+
+.signingkeys {
+  margin-top: 0;
+}
+
+#amountinput {
+  margin-bottom: 1rem;
 }
 </style>
