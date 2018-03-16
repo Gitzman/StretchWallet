@@ -14,6 +14,7 @@
         <input placeholder="Description" v-model='description' type='text' :disabled='xdrEnvelope != null'></input>
       </div>
     </div>
+
     <div v-if='xdrEnvelope'>
       <form class="col s12">
         <div class="row xdrEnvelope">
@@ -31,10 +32,16 @@
       <div>
         <label>or sign here</label>
       </div>
+
       <div class='input-field signingkeys'>
         <input v-model='userPrivateKey' type='text' placeholder='User Private Key'></input>
         <input v-model='vaultPrivateKey' type='text' placeholder='Vault Private Key'></input>
       </div>
+    </div>
+    <div>
+      <transition name='fade'>
+        <label class='errorLabel' v-if='!validAmount'>Exceeded Maximum Amount. The maximum amount is {{parseFloat(this.$store.state.balances["undefined"][0].balance)}} XLM </label>
+      </transition>
     </div>
     <a @click='createTransaction()' v-if='xdrEnvelope == null' :class="{'btn-large waves-effect light-blue darken-3':true, 'disabled': !validAmount}">
       <i class="material-icons right">send</i> Create Transaction
@@ -360,5 +367,9 @@ export default {
 
 #amountinput {
   margin-bottom: 1rem;
+}
+
+.errorLabel {
+  color: red;
 }
 </style>

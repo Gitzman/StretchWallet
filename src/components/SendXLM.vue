@@ -29,7 +29,11 @@
         <input v-model='userPrivateKey' placeholder='User Private Key'></input>
       </div>
     </div>
-
+    <div>
+      <transition name='fade'>
+        <label class='errorLabel' v-if='!validAmount'>Exceeded Maximum Amount.</label>
+      </transition>
+    </div>
     <a @click='createTransaction()' v-if='xdrEnvelope == null' :class="{'btn-large waves-effect light-blue darken-3':true, 'disabled': !validAmount}">
       <i class="material-icons right">send</i> Create Transaction
     </a>
@@ -236,4 +240,7 @@ export default {
   margin-top: 0rem;
 }
 
+.errorLabel {
+  color: red;
+}
 </style>

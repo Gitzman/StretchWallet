@@ -37,10 +37,10 @@ export default {
   },
   computed: {
     isExtraInfo() {
-      if (this.$route.path === 'deposit' ||
-        this.$route.path === 'withdraw' ||
+      if (this.$route.path === '/deposit' ||
+        this.$route.path === '/withdraw' ||
         this.$route.path === '/' ||
-        this.$route.path === 'send') {
+        this.$route.path === '/send') {
         return false
       }
       else {

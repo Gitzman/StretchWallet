@@ -3,7 +3,7 @@
   <div id='FormInfoWallet'>
     <div class="row">
       <div class='container'></div>
-      <form class="formRow" autocomplete="off">
+      <form class="formRow" autocomplete="off" onsubmit="return false">
         <div class="input-field">
           <i class="material-icons prefix">vpn_key</i>
           <input id="icon_prefix" v-model="updatedKey" name="textfield" value="" type="text" class="validate">

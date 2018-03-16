@@ -43,7 +43,11 @@
         </div>
       </div>
     </transition>
-
+    <div>
+      <transition name='fade'>
+        <label class='errorLabel' v-if='!validAmount'>Exceeded Maximum Amount.</label>
+      </transition>
+    </div>
     <a @click='createTransaction()' v-if='xdrEnvelope == null' :class="{'btn-large waves-effect light-blue darken-3':true, 'disabled': !validAmount}">
       <i class="material-icons right">send</i> Create Transaction
     </a>
@@ -120,14 +124,18 @@ export default {
     },
     validAmount: function() {
       //iterate over all the safes from this symbol. at the end of every iteration check if residue is >= 0
-      var counter = this.amount;
-      for (var i = 0; i < this.$store.state.balances[this.symbol].safes.length; i++){
-        counter -= this.$store.state.balances[this.symbol].safes[i].amount;
-        if (counter <= 0) {
-          return true;
+      if (this.symbol != null) {
+        var counter = this.amount;
+        for (var i = 0; i < this.$store.state.balances[this.symbol].safes.length; i++) {
+          counter -= this.$store.state.balances[this.symbol].safes[i].amount;
+          if (counter <= 0) {
+            return true;
+          }
         }
+        return false;
       }
-      return false;
+      return true;
+
     }
   },
   mounted() {},
@@ -383,5 +391,9 @@ select {
 
 .summary {
   margin-top: 0rem;
+}
+
+.errorLabel {
+  color: red;
 }
 </style>
