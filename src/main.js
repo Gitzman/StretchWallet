@@ -94,6 +94,8 @@ const store = new VueX.Store({
         state.validPublicKey = true;
       } else {
         state.validPublicKey = false;
+        state.vaultExist = null;
+
       }
     },
     confirmVault(state, value) {
@@ -126,6 +128,7 @@ const store = new VueX.Store({
       var newState = {
         count: 0,
         networkURL: 'https://horizon-testnet.stellar.org/',
+        networkPassphrase: 'TESTNET',
         publicKey: '',
         vaultExist: null,
         balances: [],

@@ -1,6 +1,6 @@
 <template>
-  <div id='VaultContents'>
-    <transition name='fade'>
+<div id='VaultContents'>
+  <transition name='fade'>
     <div v-if='$store.state.vaultExist'>
       <ul class="collapsiblelumen" data-collapsible="expandable">
         <li v-for='asset in $store.state.personalBalances' v-if='!asset.asset_code'>
@@ -58,10 +58,10 @@
     </div>
     <VaultCreation v-else />
   </transition>
-    <div v-if='wrongPK === true' class='errorResponse'>
-      <h4>No account associated to this public key</h4>
-    </div>
+  <div v-if='wrongPK === true' class='errorResponse'>
+    <h4>No account associated to this public key</h4>
   </div>
+</div>
 </template>
 
 <script>
@@ -69,7 +69,7 @@ import VaultCreation from './VaultCreation';
 import axios from 'axios';
 import jquery from 'jquery';
 import material from 'materialize-css';
-
+import StellarSdk from 'stellar-sdk';
 export default {
   name: 'VaultContents',
   data() {
@@ -100,7 +100,36 @@ export default {
       document.getElementById('contentstab').click();
       return counter;
     },
+    updateWalletInfo() {
+      const server = new StellarSdk.Server(this.$store.state.networkURL);
+      if (this.$store.state.networkURL === 'https://horizon.stellar.org') {
+        StellarSdk.Network.usePublicNetwork();
+      } else {
+        StellarSdk.Network.useTestNetwork();
+      }
+      server.loadAccount(this.$store.state.publicKey)
+        .then(data => {
+          if (data.data_attr.hasOwnProperty('vault_account')) {
+            const vaultkey = window.atob(data.data_attr.vault_account);
+            // add vaultkey to the state to have the public key of the vault in the state
+            var tmp = this.$store.state.publicKey
+            // this.$store.commit('reset');
+            server.loadAccount(vaultkey)
+              .then(vaultdata => {
+                this.$store.commit('setBalances', vaultdata.balances);
+                this.$store.commit('setPersonalBalances', data.balances)
+              })
+            return null //required by javacript to return something
+          } else {
+            this.$store.commit('setPersonalBalances', data.balances)
+          }
+        })
+
+    },
   },
+  mounted() {
+    this.updateWalletInfo()
+  }
 };
 </script>
 

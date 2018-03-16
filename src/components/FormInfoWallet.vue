@@ -9,7 +9,7 @@
           <input id="icon_prefix" v-model="updatedKey" name="textfield" value="" type="text" class="validate">
           <label for="icon_prefix">Public Key, Starts with G</label>
         </div>
-        <a @click='getWalletInfo()' class="btn-large waves-effect light-blue darken-3">
+        <a @click='getWalletInfo()' :class="{'btn-large waves-effect light-blue darken-3':true, 'disabled': !this.$store.state.validPublicKey }" >
           <i class="material-icons right">send</i> Send
         </a>
       </form>
@@ -67,6 +67,11 @@ export default {
     Deposit,
     VaultCreation,
   },
+  // watch: {
+  //   this.$route.path: function() {
+  //     this.updateWalletInfo();
+  //   }
+  // }
   computed: {
     updatedKey: {
       get() {
@@ -102,6 +107,9 @@ export default {
         if (data.data_attr.hasOwnProperty('vault_account')) {
           const vaultkey =  window.atob(data.data_attr.vault_account);
           // add vaultkey to the state to have the public key of the vault in the state
+          var tmp = this.$store.state.publicKey
+          // this.$store.commit('reset');
+          this.$store.commit('updatePK', tmp);
           this.$store.commit('setVaultPublicKey', vaultkey);
           server.loadAccount(vaultkey)
           .then(vaultdata => {
@@ -111,6 +119,7 @@ export default {
           })
           .catch(err => {
             Materialize.toast('The vault account associated to your account is invalid');
+            this.$store.commit('confirmVault', null)
           })
           return null //required by javacript to return something
         }
@@ -119,7 +128,10 @@ export default {
           this.$store.commit('setPersonalBalances', data.balances)
         }
       })
-      .catch(err => { Materialize.toast('Invalid Public Key', 4000) })
+      .catch(err => {
+        Materialize.toast('Invalid Public Key', 4000);
+        this.$store.commit('confirmVault', null)
+      })
     },
   },
 };

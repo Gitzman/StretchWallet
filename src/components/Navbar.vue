@@ -2,7 +2,7 @@
   <nav class='navbar'>
     <div class="nav-wrapper">
       <ul class='left'>
-        <router-link to='/' class="brand-logo">StretchWallet</router-link>
+        <a href='/' class="brand-logo">StretchWallet</a>
       </ul>
       <ul id="nav-mobile" class="right hide-on-med-and-down">
         <li><router-link to='/FAQ'>FAQ</router-link></li>
