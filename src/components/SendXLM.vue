@@ -93,13 +93,13 @@ export default {
       this.sendingStage = 'loader';
       server.submitTransaction(transaction)
         .then(data => {
-          Materialize.toast('SUCCESS: XLM Transfer Complete');
-          Materialize.toast(data._links.transaction.href);
+          Materialize.toast('SUCCESS: XLM Transfer Complete', 2000);
+          Materialize.toast(data._links.transaction.href, 2000);
           this.sendingStage = 'check';
           this.$router.push('/');
         })
         .catch(err => {
-          Materialize.toast('FAILURE, Not possible to send XLM');
+          Materialize.toast('FAILURE, Not possible to send XLM', 2000);
           this.sendingStage = 'close'
           this.$router.push('/');
         })

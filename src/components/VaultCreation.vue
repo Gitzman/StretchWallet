@@ -168,14 +168,14 @@ export default {
       this.creationStep = 'loader';
       server.submitTransaction(transaction)
         .then(data => {
-          Materialize.toast('SUCCESS, Vault Created');
-          Materialize.toast(data._links.transaction.href);
+          Materialize.toast('SUCCESS, Vault Created', 2000);
+          Materialize.toast(data._links.transaction.href, 2000);
           this.creationStep = 'check'
           this.$router.push('/')
           this.getWalletInfo();
         })
         .catch(err => {
-          Materialize.toast('Invalid Secret', 4000);
+          Materialize.toast('Invalid Secret', 2000);
         })
     },
     getWalletInfo() {
@@ -199,7 +199,7 @@ export default {
                 this.$store.commit('setPersonalBalances', data.balances)
               })
               .catch(err => {
-                Materialize.toast('The vault account associated to your account is invalid');
+                Materialize.toast('The vault account associated to your account is invalid',2000);
               })
             return null //required by javacript to return something
           } else {
@@ -208,7 +208,7 @@ export default {
           }
         })
         .catch(err => {
-          Materialize.toast('Invalid Public Key', 4000)
+          Materialize.toast('Invalid Public Key', 2000)
         })
     },
     createVault() {

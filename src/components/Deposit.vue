@@ -137,13 +137,13 @@ export default {
       this.depositStage = 'loader';
       server.submitTransaction(transaction)
         .then(data => {
-          Materialize.toast("SUCCESS, Deposit Complete");
-          Materialize.toast(data._links.transaction.href);
+          Materialize.toast("SUCCESS, Deposit Complete", 2000);
+          Materialize.toast(data._links.transaction.href, 2000);
           this.depositStage = 'check'
           this.$router.push('/')
         })
         .catch(err => {
-          Materialize.toast('FAILURE, Not possible to deposit');
+          Materialize.toast('FAILURE, Not possible to deposit', 2000);
           this.depositStage = 'close';
           this.$router.push('/')
           console.log(err);

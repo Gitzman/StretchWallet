@@ -155,14 +155,14 @@ export default {
       this.withdrawStage = 'loader';
       server.submitTransaction(transaction)
         .then(data => {
-          Materialize.toast("SUCCESS: Withdrawal Complete");
-          Materialize.toast(data._links.transaction.href);
+          Materialize.toast("SUCCESS: Withdrawal Complete", 2000);
+          Materialize.toast(data._links.transaction.href, 2000);
           this.withdrawStage = 'check';
           this.$router.push('/')
         })
         .catch(err => {
           console.log(err);
-          Materialize.toast('Failure, Not possible to withdraw')
+          Materialize.toast('Failure, Not possible to withdraw', 2000)
           this.withdrawStage = 'close'
           this.$router.push('/')
         })
